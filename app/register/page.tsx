@@ -9,6 +9,7 @@ export default function Register() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [username, setUsername] = useState("")
     
   useEffect(() => {
     const checkSession = async () => {
@@ -55,6 +56,13 @@ export default function Register() {
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="border p-2 w-full mb-3"
+        />
+        <input
+          type="text"
+          placeholder="Pseudo"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="border p-2 w-full mb-3"
         />
 

@@ -39,6 +39,9 @@ export default function DashboardPage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([])
   const [raceRanking, setRaceRanking] = useState<any[]>([])
 
+  const [members, setMembers] = useState<{ id: string; username: string; role: String }[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
+
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
   const [allRaces, setAllRaces] = useState<Race[]>([])
@@ -164,6 +167,39 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
+  async function loadLeagueMembers(leagueId: string) {
+    setMembersLoading(true)
+
+    const { data, error} = await supabase
+      .from("league_members")
+      .select(`
+        role,
+        profiles (
+          id,
+          username
+        )
+        `)
+      .eq("league_id", leagueId)
+
+    if (error) {
+      console.error(error)
+      setMembers([])
+    } else {
+      const cleaned =
+      (data || [])
+        .map((m: any) => ({
+          id: m.profiles?.id,
+          username: m.profiles?.username || "-",
+          role: m.role || "member",
+        }))
+        .filter((m: any) => m.id)
+
+        setMembers(cleaned)
+    }
+
+    setMembersLoading(false)
+  }
+
   async function saveUsername(username: string) {
     if (!user?.id) return
     const { error } = await supabase.from("profiles").update({ username }).eq("id", user.id)
@@ -189,6 +225,7 @@ export default function DashboardPage() {
 
     await loadLeagueRaces(league.id)
     await loadGeneralRanking(league.id)
+    await loadLeagueMembers(league.id)
 
     const { data: roleData } = await supabase
       .from("league_members")
@@ -632,6 +669,31 @@ export default function DashboardPage() {
                   </p>
                 )}
               </div>
+              <div className="mt-6">
+  <h3 className="text-lg font-bold mb-3">👥 Joueurs</h3>
+
+  {membersLoading ? (
+    <p className="text-white/70">Chargement…</p>
+  ) : members.length === 0 ? (
+    <p className="text-white/70">Aucun membre.</p>
+  ) : (
+    <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+      {members
+        .sort((a, b) => (a.role === "owner" ? -1 : 1))
+        .map((m) => (
+          <div
+            key={m.id}
+            className="flex justify-between px-4 py-3 border-b border-white/10"
+          >
+            <span className="font-semibold">{m.username}</span>
+            <span className="text-sm text-white/70">
+              {m.role === "owner" ? "👑 Admin" : "Membre"}
+            </span>
+          </div>
+        ))}
+    </div>
+  )}
+</div>
 
               <div className="flex flex-wrap gap-2">
                 {isOwner && selectedLeague.code && (
