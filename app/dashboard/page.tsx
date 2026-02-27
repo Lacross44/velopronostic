@@ -733,6 +733,33 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+                        {/* General ranking */}
+<div className="mt-8">
+  <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
+
+  {leaderboard.length === 0 ? (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/70">
+      Classement disponible après la saisie des résultats.
+    </div>
+  ) : (
+    <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+      {leaderboard.map((player: any, index: number) => (
+        <div
+          key={player.user_id ?? index}
+          className="flex justify-between items-center px-4 py-3 border-b border-white/10"
+        >
+          <div className="flex items-center gap-3">
+            <span className="w-7 text-white/70">{index + 1}.</span>
+            <span className="font-semibold">{player.username}</span>
+          </div>
+          <span className="font-extrabold">
+            {(player.total_points ?? player.total ?? 0)} pts
+          </span>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
             {/* Courses list */}
             <div className="mt-6">
@@ -803,27 +830,6 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-
-            {/* General ranking */}
-            {leaderboard.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
-                <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-                  {leaderboard.map((player: any, index: number) => (
-                    <div
-                      key={player.user_id}
-                      className="flex justify-between items-center px-4 py-3 border-b border-white/10"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="w-7 text-white/70">{index + 1}.</span>
-                        <span className="font-semibold">{player.username}</span>
-                      </div>
-                      <span className="font-extrabold">{player.total_points} pts</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Race ranking */}
             {raceRanking.length > 0 && (
