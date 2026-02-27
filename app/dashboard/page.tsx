@@ -76,7 +76,8 @@ if (!sessionRes.session) {
         image_url,
         status,
         launched_at,
-        owner_id
+        owner_id,
+        code
       )
     `)
     .eq("user_id", user.id)
@@ -410,6 +411,36 @@ async function launchLeague() {
     loadData()
   }
 }
+function toDate(d?: string | null) {
+  return d ? new Date(d) : null
+}
+
+const now = new Date()
+
+const sortedRaces = [...races].sort((a, b) => {
+  const da = toDate(a.race_date)?.getTime() ?? 0
+  const db = toDate(b.race_date)?.getTime() ?? 0
+  return da - db
+})
+
+// prochaine course = première course dont la deadline est dans le futur
+const nextRace =
+  sortedRaces.find((r) => {
+    const dl = toDate(r.pronostic_deadline)
+    return dl ? dl > now : false
+  }) || null
+
+// dernière terminée = dernière course dont la deadline est passée
+const finishedRaces = sortedRaces.filter((r) => {
+  const dl = toDate(r.pronostic_deadline)
+  return dl ? dl <= now : false
+})
+
+const lastFinishedRace = finishedRaces.length
+  ? finishedRaces[finishedRaces.length - 1]
+  : null
+
+const visibleRaces = [lastFinishedRace, nextRace].filter(Boolean)
 
   if (loading) return <div className="p-6">Chargement...</div>
   if (needsUsername) {
@@ -602,167 +633,96 @@ async function launchLeague() {
       ✅ Ligue active
     </div>
   )}
-</div>
-          {races.length === 0 && (
-            <p>Aucune course active pour cette ligue.</p>
-          )}
-          
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-{races.map((race) => (
-<div
-  key={race.id}
-  className="rounded-2xl p-4 border border-white/10 bg-white/5 hover:bg-white/10 transition shadow-lg shadow-black/20"
->
-  <div className="flex items-start justify-between gap-3">
-    <div className="min-w-0">
-      <h3 className="text-lg font-bold truncate">{race.name}</h3>
-      <p className="text-sm text-white/60">
-        {race.race_date ? new Date(race.race_date).toLocaleDateString() : ""}
-      </p>
-    </div>
-
-    {race.logo_url && (
-      <img
-        src={race.logo_url}
-        className="h-10 w-16 object-contain"
-        alt={race.name}
-      />
-    )}
-  </div>
-{new Date(race.pronostic_deadline) > new Date() ? (
-  <span className="text-emerald-400 text-xs">🟢 Ouvert</span>
-) : (
-  <span className="text-red-400 text-xs">🔒 Fermé</span>
-)}
-  <div className="flex gap-2 mt-4">
-<button
-  onClick={() => openProno(race)}
-  className="flex-1 text-center px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
->
-  🏁 Pronostiquer
-</button>
-
-    <button
-      onClick={() => loadRaceRanking(selectedLeague.id, race.id)}
-      className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
-    >
-      🏆 Classement
-    </button>
-  </div>
-</div>
-))}
-{raceRanking.length > 0 && (
-  <div className="mt-8">
-    <h3 className="text-xl font-bold mb-4">🏟️ Classement — Course</h3>
-
-    <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-      {raceRanking.map((player, index) => (
-        <div
-          key={player.user_id ?? index}
-          className="flex justify-between items-center px-4 py-3 border-b border-white/10"
-        >
-          <span className="font-semibold">
-            {index + 1}. {player.username}
-          </span>
-          <span className="font-extrabold">{player.points} pts</span>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-{pronoRace && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950/90 backdrop-blur p-6">
-<div className="flex items-start justify-between gap-3 mb-4">
-  <div className="flex items-start gap-3">
-    {pronoRace.logo_url && (
-      <img
-        src={pronoRace.logo_url}
-        alt={pronoRace.name}
-        className="h-12 w-20 object-contain"
-      />
-    )}
-
-    <div>
-      <h3 className="text-xl font-bold">🏁 {pronoRace.name}</h3>
-
-      <p className="text-sm text-white/70">
-        📅 Course :{" "}
-        {pronoRace.race_date
-          ? new Date(pronoRace.race_date).toLocaleString()
-          : "—"}
-      </p>
-
-      <p className="text-sm text-white/70">
-        ⏳ Deadline :{" "}
-        {pronoRace.pronostic_deadline
-          ? new Date(pronoRace.pronostic_deadline).toLocaleString()
-          : "—"}
-      </p>
-    </div>
-  </div>
-
+  {isOwner && selectedLeague?.code && (
   <button
-    onClick={() => setPronoRace(null)}
-    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+    onClick={async () => {
+      const text = `Rejoins ma ligue "${selectedLeague.name}" sur Velopronostic : code ${selectedLeague.code}`
+      try {
+        await navigator.clipboard.writeText(text)
+        alert("Code copié ✅")
+      } catch {
+        alert(`Code de la ligue : ${selectedLeague.code}`)
+      }
+    }}
+    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
   >
-    Fermer
+    🔗 Partager le code
   </button>
+)}
 </div>
 
-      {pronoLoading ? (
-        <div className="text-white/70">Chargement…</div>
-      ) : (
-        <>
-          {pronoRace.pronostic_deadline && new Date() > new Date(pronoRace.pronostic_deadline) ? (
-            <>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                <div className="font-semibold mb-2">🔒 Pronostics fermés — pronos de la ligue</div>
-                {otherLeaguePredictions.length === 0 ? (
-                  <div className="text-white/60">Aucun pronostic trouvé.</div>
-                ) : (
-                  <div className="space-y-3">
-                    {otherLeaguePredictions.map((p:any, idx:number) => (
-                      <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                        <div className="font-bold">{p.profiles?.username || "Utilisateur"}</div>
-                        <div className="text-sm text-white/80">🥇 {p.first}</div>
-                        <div className="text-sm text-white/80">🥈 {p.second}</div>
-                        <div className="text-sm text-white/80">🥉 {p.third}</div>
-                        <div className="text-sm text-white/80">🇫🇷 {p.first_french}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-3">
-                <input className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                  placeholder="1er" value={p1} onChange={(e)=>setP1(e.target.value)} />
-                <input className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                  placeholder="2e" value={p2} onChange={(e)=>setP2(e.target.value)} />
-                <input className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                  placeholder="3e" value={p3} onChange={(e)=>setP3(e.target.value)} />
-                <input className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                  placeholder="1er Français" value={pF} onChange={(e)=>setPF(e.target.value)} />
-              </div>
-
-              <button
-                onClick={saveProno}
-                className="mt-4 w-full px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-semibold"
-              >
-                {myPrediction ? "Modifier mon pronostic" : "Enregistrer mon pronostic"}
-              </button>
-            </>
-          )}
-        </>
-      )}
-    </div>
+<div className="mt-6">
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="text-lg font-bold">📅 Courses (dernière + prochaine)</h3>
+    <span className="text-sm text-white/60">
+      {sortedRaces.length} course(s) dans la ligue
+    </span>
   </div>
-)}
+
+  {visibleRaces.length === 0 && (
+    <div className="text-white/70">
+      Aucune course active pour cette ligue.
+    </div>
+  )}
+
+  <div className="space-y-2">
+    {visibleRaces.map((race: any) => {
+      const deadline = toDate(race.pronostic_deadline)
+      const isOpen = deadline ? deadline > now : false
+
+      return (
+        <div
+          key={race.id}
+          className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            {race.logo_url && (
+              <img
+                src={race.logo_url}
+                alt={race.name}
+                className="h-9 w-14 object-contain"
+              />
+            )}
+
+            <div className="min-w-0">
+              <div className="font-semibold truncate">{race.name}</div>
+              <div className="text-sm text-white/60">
+                {race.race_date ? new Date(race.race_date).toLocaleDateString() : "—"}
+                {" • "}
+                Deadline : {race.pronostic_deadline ? new Date(race.pronostic_deadline).toLocaleString() : "—"}
+              </div>
+            </div>
           </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {isOpen ? (
+              <button
+                onClick={() => openProno(race)}
+                className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
+              >
+                🏁 Pronostiquer
+              </button>
+            ) : (
+              <button
+                onClick={() => loadRaceRanking(selectedLeague.id, race.id)}
+                className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
+              >
+                🏆 Classement
+              </button>
+            )}
+          </div>
+        </div>
+      )
+    })}
+  </div>
+
+  {/* Option : lien pour afficher toutes les courses plus tard */}
+  {sortedRaces.length > 2 && (
+    <div className="mt-3 text-sm text-white/60">
+      (Astuce) On affiche seulement la dernière course terminée et la prochaine à pronostiquer.
+    </div>
+  )}
+</div>
         </div>
       )}
       
