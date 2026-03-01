@@ -200,6 +200,13 @@ async function calculatePoints(raceId: string) {
       alert("Erreur enregistrement résultats")
       return
     }
+    
+    try {
+  await calculatePoints(selectedRace.id)
+} catch (e: any) {
+  alert("Erreur recalcul points: " + (e?.message ?? "inconnue"))
+  return
+}
 
     // 2) recalcul en base (RPC)
     const { error: rpcError } = await supabase.rpc("calculate_points_for_race", {
