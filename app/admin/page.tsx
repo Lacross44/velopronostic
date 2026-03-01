@@ -129,7 +129,50 @@ export default function AdminPage() {
       setFirstFrench(data.first_french || "")
     }
   }
+async function calculatePoints(raceId: string) {
+  const { data: race, error: raceErr } = await supabase
+    .from("races")
+    .select("*")
+    .eq("id", raceId)
+    .single()
 
+  if (raceErr) throw new Error(raceErr.message)
+
+  const { data: predictions, error: predErr } = await supabase
+    .from("predictions")
+    .select("*")
+    .eq("race_id", raceId)
+
+  if (predErr) throw new Error(predErr.message)
+  if (!race || !predictions) return
+
+  for (const p of predictions) {
+    let points = 0
+
+    const realTop3 = [race.first_place, race.second_place, race.third_place]
+    const userTop3 = [p.first, p.second, p.third]
+
+    // Points exacts (selon ton barème)
+    if (p.first === race.first_place) points += 5
+    if (p.second === race.second_place) points += 4
+    if (p.third === race.third_place) points += 3
+
+    // 1 point si coureur trouvé mais mauvaise position
+    userTop3.forEach((rider: string, index: number) => {
+      if (realTop3.includes(rider) && rider !== realTop3[index]) points += 1
+    })
+
+    // ✅ 1er français (CORRECTION ICI)
+    if (p.first_french === race.first_french_place) points += 2
+
+    const { error: updErr } = await supabase
+      .from("predictions")
+      .update({ points })
+      .eq("id", p.id)
+
+    if (updErr) throw new Error(updErr.message)
+  }
+}
   async function saveResults() {
     if (!selectedRace) return
 
