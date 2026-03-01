@@ -135,8 +135,16 @@ function norm(s: any) {
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // retire accents
-    .replace(/\s+/g, " ")           // espaces multiples
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+}
+
+function matchName(a: any, b: any) {
+  const A = norm(a)
+  const B = norm(b)
+  if (!A || !B) return false
+  if (A === B) return true
+  return A.includes(B) || B.includes(A)
 }
 
 async function calculatePoints(raceId: string) {
@@ -160,35 +168,32 @@ async function calculatePoints(raceId: string) {
   if (!predictions) return
 
   // normalisation résultats
-  const r1 = norm(res.first_place)
-  const r2 = norm(res.second_place)
-  const r3 = norm(res.third_place)
-  const rf = norm(res.first_french)
-
-  const realTop3 = [r1, r2, r3]
-
   for (const p of predictions) {
-    let points = 0
+ const r1 = res.first_place
+const r2 = res.second_place
+const r3 = res.third_place
+const rf = res.first_french
 
-    const u1 = norm(p.first)
-    const u2 = norm(p.second)
-    const u3 = norm(p.third)
-    const uf = norm(p.first_french)
+const realTop3 = [r1, r2, r3]
 
-    const userTop3 = [u1, u2, u3]
+let points = 0
 
-    // Barème : 5 / 4 / 3
-    if (u1 === r1) points += 5
-    if (u2 === r2) points += 4
-    if (u3 === r3) points += 3
+if (matchName(p.first, r1)) points += 5
+if (matchName(p.second, r2)) points += 4
+if (matchName(p.third, r3)) points += 3
 
-    // +1 si coureur dans le top3 mais pas à la bonne place
-    userTop3.forEach((rider, idx) => {
-      if (realTop3.includes(rider) && rider !== realTop3[idx]) points += 1
-    })
+// +1 si coureur trouvé mais pas la bonne place
+const userTop3 = [p.first, p.second, p.third]
 
-    // 1er français : +2
-    if (uf === rf) points += 2
+userTop3.forEach((rider, idx) => {
+  const correctAtIdx = realTop3[idx]
+  const isInTop3 = realTop3.some((real) => matchName(rider, real))
+  const isExactPosition = matchName(rider, correctAtIdx)
+  if (isInTop3 && !isExactPosition) points += 1
+})
+
+// 1er français
+if (matchName(p.first_french, rf)) points += 2
 
     const { error: updErr } = await supabase
       .from("predictions")
