@@ -805,24 +805,33 @@ export default function DashboardPage() {
 
                         <div className="flex items-center gap-2 shrink-0">
                           {isNext ? (
-                            <button
-                              onClick={() => openProno(race)}
-                              className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
-                            >
-                              🏁 Pronostiquer
-                            </button>
-                          ) : isFinished ? (
-                            <button
-                              onClick={() => loadRaceRanking(selectedLeague.id, race.id)}
-                              className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
-                            >
-                              🏆 Classement
-                            </button>
-                          ) : (
-                            <span className="text-xs px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60">
-                              🔒 Pas encore
-                            </span>
-                          )}
+  <button
+    onClick={() => openProno(race)}
+    className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
+  >
+    🏁 Pronostiquer
+  </button>
+) : isFinished ? (
+  <>
+    <button
+      onClick={() => loadRaceRanking(selectedLeague.id, race.id)}
+      className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
+    >
+      🏆 Classement
+    </button>
+
+    <button
+      onClick={() => openProno(race)}
+      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+    >
+      👀 Pronos
+    </button>
+  </>
+) : (
+  <span className="text-xs px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60">
+    🔒 Pas encore
+  </span>
+)}
                         </div>
                       </div>
                     )
