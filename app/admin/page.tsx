@@ -163,7 +163,7 @@ async function calculatePoints(raceId: string) {
   const r1 = norm(res.first_place)
   const r2 = norm(res.second_place)
   const r3 = norm(res.third_place)
-  const rf = norm(res.first_french_place)
+  const rf = norm(res.first_french)
 
   const realTop3 = [r1, r2, r3]
 

@@ -968,7 +968,7 @@ export default function DashboardPage() {
                           {otherLeaguePredictions.length === 0 ? (
                             <div className="text-white/60">Aucun pronostic trouvé.</div>
                           ) : (
-                            <div className="mt-3 space-y-3 overflow-y-auto pr-1">
+                            <div className="space-y-4 overflow-y-auto pr-1">
                               {otherLeaguePredictions.map((p: any, idx: number) => (
                                 <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-3">
                                   <div className="font-bold">{p.profiles?.username || "Utilisateur"}</div>
