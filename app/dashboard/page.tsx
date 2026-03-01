@@ -822,7 +822,7 @@ export default function DashboardPage() {
 
     <button
       onClick={() => openProno(race)}
-      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition p-6 flex flex-col max-h-[85vh]"
     >
       👀 Pronos
     </button>
@@ -923,8 +923,8 @@ export default function DashboardPage() {
         {pronoRace && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950/90 backdrop-blur p-6">
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div className="flex items-start gap-3">
+              <div className="sticky top-0 bg-slate-950/95 z-10 pb-3 mb-3 border-b border-white/10">
+                <div className="flex items-start justify-between gap-3">
                   {pronoRace.logo_url && (
                     <img
                       src={pronoRace.logo_url}
@@ -968,7 +968,7 @@ export default function DashboardPage() {
                           {otherLeaguePredictions.length === 0 ? (
                             <div className="text-white/60">Aucun pronostic trouvé.</div>
                           ) : (
-                            <div className="space-y-3">
+                            <div className="mt-3 space-y-3 overflow-y-auto pr-1">
                               {otherLeaguePredictions.map((p: any, idx: number) => (
                                 <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-3">
                                   <div className="font-bold">{p.profiles?.username || "Utilisateur"}</div>
