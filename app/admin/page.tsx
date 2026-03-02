@@ -148,59 +148,64 @@ function matchName(a: any, b: any) {
 }
 
 async function calculatePoints(raceId: string) {
-  // 1) récupérer les résultats depuis results
   const { data: res, error: resErr } = await supabase
     .from("results")
-    .select("*")
+    .select("first_place, second_place, third_place, first_french")
     .eq("race_id", raceId)
     .single()
 
-  if (resErr) throw new Error("Résultats introuvables pour cette course.")
+  if (resErr) throw new Error("Résultats introuvables pour cette course: " + resErr.message)
   if (!res) throw new Error("Résultats introuvables pour cette course.")
 
-  // 2) récupérer les pronos
   const { data: predictions, error: predErr } = await supabase
     .from("predictions")
-    .select("*")
+    .select("id, user_id, first, second, third, first_french")
     .eq("race_id", raceId)
 
   if (predErr) throw new Error(predErr.message)
   if (!predictions) return
 
-  // normalisation résultats
+  const r1 = res.first_place
+  const r2 = res.second_place
+  const r3 = res.third_place
+  const rf = res.first_french
+  const realTop3 = [r1, r2, r3]
+
+  console.log("CALC POINTS raceId", raceId)
+  console.log("RESULTS", { r1, r2, r3, rf })
+  console.log("PRED COUNT", predictions.length)
+
   for (const p of predictions) {
- const r1 = res.first_place
-const r2 = res.second_place
-const r3 = res.third_place
-const rf = res.first_french
+    let points = 0
 
-const realTop3 = [r1, r2, r3]
+    if (matchName(p.first, r1)) points += 5
+    if (matchName(p.second, r2)) points += 4
+    if (matchName(p.third, r3)) points += 3
 
-let points = 0
+    const userTop3 = [p.first, p.second, p.third]
 
-if (matchName(p.first, r1)) points += 5
-if (matchName(p.second, r2)) points += 4
-if (matchName(p.third, r3)) points += 3
+    userTop3.forEach((rider, idx) => {
+      const correctAtIdx = realTop3[idx]
+      const isInTop3 = realTop3.some((real) => matchName(rider, real))
+      const isExactPosition = matchName(rider, correctAtIdx)
+      if (isInTop3 && !isExactPosition) points += 1
+    })
 
-// +1 si coureur trouvé mais pas la bonne place
-const userTop3 = [p.first, p.second, p.third]
+    if (matchName(p.first_french, rf)) points += 2
 
-userTop3.forEach((rider, idx) => {
-  const correctAtIdx = realTop3[idx]
-  const isInTop3 = realTop3.some((real) => matchName(rider, real))
-  const isExactPosition = matchName(rider, correctAtIdx)
-  if (isInTop3 && !isExactPosition) points += 1
-})
-
-// 1er français
-if (matchName(p.first_french, rf)) points += 2
+    console.log("USER", p.user_id, "=>", points, {
+      first: p.first,
+      second: p.second,
+      third: p.third,
+      first_french: p.first_french,
+    })
 
     const { error: updErr } = await supabase
       .from("predictions")
       .update({ points })
       .eq("id", p.id)
 
-    if (updErr) throw new Error(updErr.message)
+    if (updErr) throw new Error("Update points failed: " + updErr.message)
   }
 }
   async function saveResults() {
