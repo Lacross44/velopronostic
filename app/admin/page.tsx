@@ -1,5 +1,6 @@
 "use client"
 
+console.log("ADMIN PAGE LOADED - SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
