@@ -200,15 +200,24 @@ async function calculatePoints(raceId: string) {
       third: p.third,
       first_french: p.first_french,
     })
+    
+if (!p.id) {
+  console.error("Prediction without id:", p)
+  throw new Error("Prediction sans id, impossible de mettre à jour.")
+}
 
-   const { data: updData, error: updErr } = await supabase
+const { data: updData, error: updErr } = await supabase
   .from("predictions")
   .update({ points })
   .eq("id", p.id)
   .select("id, points")
-  .single()
+  .maybeSingle()
 
 if (updErr) throw new Error("Update points failed: " + updErr.message)
+
+if (!updData) {
+  throw new Error("Update points failed: aucune ligne mise à jour (RLS ? id invalide ?)")
+}
 
 console.log("UPDATED ROW:", updData)
   }
