@@ -935,123 +935,32 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
         )}
 
         {/* Pronostic modal */}
-        {pronoRace && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950/95 backdrop-blur p-6 flex flex-col max-h-[85vh]">
-              <div className="sticky top-0 bg-slate-950/95 z-10 pb-3 mb-3 border-b border-white/10">
-                <div className="flex items-start justify-between gap-3">
-                  {pronoRace.logo_url && (
-                    <img
-                      src={pronoRace.logo_url}
-                      alt={pronoRace.name}
-                      className="h-12 w-20 object-contain"
-                    />
-                  )}
-                  <div>
-                    <div className="sticky top-0 bg-slate-950/95 z-10 pb-3 mb-3 border-b border-white/10">
-                    <h3 className="text-xl font-bold">🏁 {pronoRace.name}</h3>
-                    <p className="text-sm text-white/70">
-                      📅 Course : {pronoRace.race_date ? new Date(pronoRace.race_date).toLocaleString() : "—"}
-                    </p>
-                    <p className="text-sm text-white/70">
-                      ⏳ Deadline :{" "}
-                      {pronoRace.pronostic_deadline
-                        ? new Date(pronoRace.pronostic_deadline).toLocaleString()
-                        : "—"}
-                    </p>
-                  </div>
-                </div>
+                    {/* Race ranking */}
+{raceRankingRaceId && (
+  <div className="mt-8">
+    <h3 className="text-lg font-bold mb-3">🏟️ Classement — course</h3>
 
-                <button
-                  onClick={() => setPronoRace(null)}
-                  className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
-                >
-                  Fermer
-                </button>
-                </div>
-              </div>
-
-              {pronoLoading ? (
-                <div className="text-white/70">Chargement…</div>
-              ) : (
-                <>
-                  {(() => {
-                    const dl = toDate(pronoRace.pronostic_deadline)
-                    const locked = dl ? dl <= new Date() : false
-                    if (locked) {
-                      return (
-                        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                          <div className="font-semibold mb-2">🔒 Pronostics fermés — pronos de la ligue</div>
-                          {otherLeaguePredictions.length === 0 ? (
-                            <div className="text-white/60">Aucun pronostic trouvé.</div>
-                          ) : (
-                            <div className="space-y-4 overflow-y-auto pr-1">
-                              {otherLeaguePredictions.map((p: any, idx: number) => (
-                                <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                                 <div className="overflow-y-auto pr-1 space-y-4">
-                                  <div className="font-bold">{p.profiles?.username || "Utilisateur"}</div>
-                                  <div className="text-sm text-white/80">🥇 {p.first}</div>
-                                  <div className="text-sm text-white/80">🥈 {p.second}</div>
-                                  <div className="text-sm text-white/80">🥉 {p.third}</div>
-                                  <div className="text-sm text-white/80">🇫🇷 {p.first_french}</div>
-                                </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    }
-
-                    return (
-                      <>
-                        <div className="grid grid-cols-1 gap-3">
-                          <input
-                            className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                            placeholder="1er"
-                            value={p1}
-                            onChange={(e) => setP1(e.target.value)}
-                          />
-                          <input
-                            className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                            placeholder="2e"
-                            value={p2}
-                            onChange={(e) => setP2(e.target.value)}
-                          />
-                          <input
-                            className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                            placeholder="3e"
-                            value={p3}
-                            onChange={(e) => setP3(e.target.value)}
-                          />
-                          <input
-                            className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                            placeholder="1er Français"
-                            value={pF}
-                            onChange={(e) => setPF(e.target.value)}
-                          />
-                        </div>
-
-                        <button
-                          onClick={saveProno}
-                          className="mt-4 w-full px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-semibold"
-                        >
-                          {myPrediction ? "Modifier mon pronostic" : "Enregistrer mon pronostic"}
-                        </button>
-
-                        {nextRace?.id !== pronoRace.id && (
-                          <p className="mt-3 text-sm text-white/60">
-                            Tu ne peux pronostiquer que la prochaine course.
-                          </p>
-                        )}
-                      </>
-                    )
-                  })()}
-                </>
-              )}
-            </div>
+    {raceRanking.length === 0 ? (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/70">
+        Classement disponible après saisie des résultats et recalcul.
+      </div>
+    ) : (
+      <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+        {raceRanking.map((player: any, index: number) => (
+          <div
+            key={player.user_id ?? index}
+            className="flex justify-between items-center px-4 py-3 border-b border-white/10"
+          >
+            <span className="font-semibold">
+              {index + 1}. {player.username}
+            </span>
+            <span className="font-extrabold">{player.points} pts</span>
           </div>
-        )}
+        ))}
+      </div>
+    )}
+  </div>
+)}
       </div>
     </div>
   )
