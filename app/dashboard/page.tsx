@@ -38,6 +38,7 @@ export default function DashboardPage() {
 
   const [leaderboard, setLeaderboard] = useState<any[]>([])
   const [raceRanking, setRaceRanking] = useState<any[]>([])
+  const [raceRankingRaceId, setRaceRankingRaceId] = useState<string | null>(null)
 
   const [members, setMembers] = useState<{ id: string; username: string; role: String }[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
@@ -280,17 +281,26 @@ export default function DashboardPage() {
     setLeaderboard(data || [])
   }
 
-  async function loadRaceRanking(leagueId: string, raceId: string) {
-    const { data, error } = await supabase.rpc("get_league_race_ranking", {
-      p_league_id: leagueId,
-      p_race_id: raceId,
-    })
-    if (error) {
-      console.error("Race ranking error:", error)
-      return
-    }
-    setRaceRanking(data || [])
+async function loadRaceRanking(leagueId: string, raceId: string) {
+  console.log("loadRaceRanking", { leagueId, raceId })
+
+  const { data, error } = await supabase.rpc("get_league_race_ranking", {
+    p_league_id: leagueId,
+    p_race_id: raceId,
+  })
+
+  if (error) {
+    console.error("Race ranking error:", error)
+    alert("Erreur classement course: " + error.message)
+    setRaceRanking([])
+    setRaceRankingRaceId(raceId) // (si tu ajoutes ce state)
+    return
   }
+
+  console.log("Race ranking data", data)
+  setRaceRanking(data || [])
+  setRaceRankingRaceId(raceId) // (si tu ajoutes ce state)
+}
 
   async function createLeague() {
     const name = prompt("Nom de la ligue ?")
@@ -841,24 +851,31 @@ export default function DashboardPage() {
             </div>
 
             {/* Race ranking */}
-            {raceRanking.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-bold mb-3">🏟️ Classement — course</h3>
-                <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-                  {raceRanking.map((player: any, index: number) => (
-                    <div
-                      key={player.user_id ?? index}
-                      className="flex justify-between items-center px-4 py-3 border-b border-white/10"
-                    >
-                      <span className="font-semibold">
-                        {index + 1}. {player.username}
-                      </span>
-                      <span className="font-extrabold">{player.points} pts</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+{raceRankingRaceId && (
+  <div className="mt-8">
+    <h3 className="text-lg font-bold mb-3">🏟️ Classement — course</h3>
+
+    {raceRanking.length === 0 ? (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/70">
+        Classement disponible après saisie des résultats et recalcul.
+      </div>
+    ) : (
+      <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+        {raceRanking.map((player: any, index: number) => (
+          <div
+            key={player.user_id ?? index}
+            className="flex justify-between items-center px-4 py-3 border-b border-white/10"
+          >
+            <span className="font-semibold">
+              {index + 1}. {player.username}
+            </span>
+            <span className="font-extrabold">{player.points} pts</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
             {/* Manage courses */}
             {manageMode && (
@@ -922,7 +939,7 @@ export default function DashboardPage() {
         {/* Pronostic modal */}
         {pronoRace && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950/90 backdrop-blur p-6">
+            <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950/95 backdrop-blur p-6 flex flex-col max-h-[85vh]">
               <div className="sticky top-0 bg-slate-950/95 z-10 pb-3 mb-3 border-b border-white/10">
                 <div className="flex items-start justify-between gap-3">
                   {pronoRace.logo_url && (
@@ -933,6 +950,7 @@ export default function DashboardPage() {
                     />
                   )}
                   <div>
+                    <div className="sticky top-0 bg-slate-950/95 z-10 pb-3 mb-3 border-b border-white/10">
                     <h3 className="text-xl font-bold">🏁 {pronoRace.name}</h3>
                     <p className="text-sm text-white/70">
                       📅 Course : {pronoRace.race_date ? new Date(pronoRace.race_date).toLocaleString() : "—"}
@@ -952,6 +970,7 @@ export default function DashboardPage() {
                 >
                   Fermer
                 </button>
+                </div>
               </div>
 
               {pronoLoading ? (
@@ -971,11 +990,13 @@ export default function DashboardPage() {
                             <div className="space-y-4 overflow-y-auto pr-1">
                               {otherLeaguePredictions.map((p: any, idx: number) => (
                                 <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                 <div className="overflow-y-auto pr-1 space-y-4">
                                   <div className="font-bold">{p.profiles?.username || "Utilisateur"}</div>
                                   <div className="text-sm text-white/80">🥇 {p.first}</div>
                                   <div className="text-sm text-white/80">🥈 {p.second}</div>
                                   <div className="text-sm text-white/80">🥉 {p.third}</div>
                                   <div className="text-sm text-white/80">🇫🇷 {p.first_french}</div>
+                                </div>
                                 </div>
                               ))}
                             </div>
