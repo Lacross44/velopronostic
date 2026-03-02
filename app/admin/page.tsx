@@ -201,13 +201,18 @@ async function calculatePoints(raceId: string) {
       first_french: p.first_french,
     })
 
-    const { error: updErr } = await supabase
-      .from("predictions")
-      .update({ points })
-      .eq("id", p.id)
+   const { data: updData, error: updErr } = await supabase
+  .from("predictions")
+  .update({ points })
+  .eq("id", p.id)
+  .select("id, points")
+  .single()
 
-    if (updErr) throw new Error("Update points failed: " + updErr.message)
+if (updErr) throw new Error("Update points failed: " + updErr.message)
+
+console.log("UPDATED ROW:", updData)
   }
+
 }
   async function saveResults() {
     if (!selectedRace) return
