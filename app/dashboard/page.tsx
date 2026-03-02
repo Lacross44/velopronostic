@@ -770,7 +770,32 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
     </div>
   )}
 </div>
+            {/* Race ranking */}
+{raceRankingRaceId && (
+  <div className="mt-8">
+    <h3 className="text-lg font-bold mb-3">🏟️ Classement — course</h3>
 
+    {raceRanking.length === 0 ? (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/70">
+        Classement disponible après saisie des résultats et recalcul.
+      </div>
+    ) : (
+      <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+        {raceRanking.map((player: any, index: number) => (
+          <div
+            key={player.user_id ?? index}
+            className="flex justify-between items-center px-4 py-3 border-b border-white/10"
+          >
+            <span className="font-semibold">
+              {index + 1}. {player.username}
+            </span>
+            <span className="font-extrabold">{player.points} pts</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
             {/* Courses list */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-3">
@@ -849,33 +874,6 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
                 </div>
               )}
             </div>
-
-            {/* Race ranking */}
-{raceRankingRaceId && (
-  <div className="mt-8">
-    <h3 className="text-lg font-bold mb-3">🏟️ Classement — course</h3>
-
-    {raceRanking.length === 0 ? (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/70">
-        Classement disponible après saisie des résultats et recalcul.
-      </div>
-    ) : (
-      <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-        {raceRanking.map((player: any, index: number) => (
-          <div
-            key={player.user_id ?? index}
-            className="flex justify-between items-center px-4 py-3 border-b border-white/10"
-          >
-            <span className="font-semibold">
-              {index + 1}. {player.username}
-            </span>
-            <span className="font-extrabold">{player.points} pts</span>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-)}
 
             {/* Manage courses */}
             {manageMode && (
