@@ -42,6 +42,7 @@ export default function DashboardPage() {
 
   const [members, setMembers] = useState<{ id: string; username: string; role: String }[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
+  const [membersOpen, setMembersOpen] = useState(false)
 
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
@@ -735,31 +736,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
                   </p>
                 )}
               </div>
-              <div className="mt-6">
-  <h3 className="text-lg font-bold mb-3">👥 Joueurs</h3>
 
-  {membersLoading ? (
-    <p className="text-white/70">Chargement…</p>
-  ) : members.length === 0 ? (
-    <p className="text-white/70">Aucun membre.</p>
-  ) : (
-    <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-      {members
-        .sort((a, b) => (a.role === "owner" ? -1 : 1))
-        .map((m) => (
-          <div
-            key={m.id}
-            className="flex justify-between px-4 py-3 border-b border-white/10"
-          >
-            <span className="font-semibold">{m.username}</span>
-            <span className="text-sm text-white/70">
-              {m.role === "owner" ? "👑 Admin" : "Membre"}
-            </span>
-          </div>
-        ))}
-    </div>
-  )}
-</div>
 
               <div className="flex flex-wrap gap-2">
                 {isOwner && selectedLeague.code && (
@@ -799,6 +776,42 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
                 )}
               </div>
             </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+  <button
+    onClick={() => setMembersOpen((v) => !v)}
+    className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition"
+  >
+    <span className="font-semibold">👥 {members.length} joueur(s)</span>
+    <span className="text-white/70">{membersOpen ? "▲" : "▼"}</span>
+  </button>
+
+  {membersOpen && (
+    <div className="border-t border-white/10">
+      {membersLoading ? (
+        <div className="px-4 py-3 text-white/70">Chargement…</div>
+      ) : members.length === 0 ? (
+        <div className="px-4 py-3 text-white/70">Aucun membre.</div>
+      ) : (
+        <div className="max-h-56 overflow-y-auto">
+          {members
+            .slice()
+            .sort((a, b) => (a.role === "owner" ? -1 : 1))
+            .map((m) => (
+              <div
+                key={m.id}
+                className="flex justify-between px-4 py-3 border-b border-white/10"
+              >
+                <span className="font-semibold">{m.username}</span>
+                <span className="text-sm text-white/70">
+                  {m.role === "owner" ? "👑 Admin" : "Membre"}
+                </span>
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  )}
+</div>
                         {/* General ranking */}
 <div className="mt-8">
   <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
