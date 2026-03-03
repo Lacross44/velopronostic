@@ -61,6 +61,13 @@ export default function DashboardPage() {
   // Username flow
   const [needsUsername, setNeedsUsername] = useState(false)
 
+  //refonte classement course
+  const [raceRankOpen, setRaceRankOpen] = useState(false)
+const [raceRankRace, setRaceRankRace] = useState<any>(null)
+const [raceResult, setRaceResult] = useState<any>(null)
+const [racePredList, setRacePredList] = useState<any[]>([])
+const [raceRankLoading, setRaceRankLoading] = useState(false)
+
   function toDate(d?: string | null) {
     return d ? new Date(d) : null
   }
@@ -280,6 +287,55 @@ export default function DashboardPage() {
     }
     setLeaderboard(data || [])
   }
+
+  async function openRaceRankingModal(race: any) {
+  if (!selectedLeague) return
+
+  setRaceRankOpen(true)
+  setRaceRankRace(race)
+  setRaceResult(null)
+  setRacePredList([])
+  setRaceRankLoading(true)
+
+  // 1) Résultat officiel
+  const { data: res, error: resErr } = await supabase
+    .from("results")
+    .select("first_place, second_place, third_place, first_french")
+    .eq("race_id", race.id)
+    .maybeSingle()
+
+  if (resErr) console.error("results error", resErr)
+  setRaceResult(res || null)
+
+  // 2) Pronos des membres de la ligue + points
+  const { data: preds, error: predErr } = await supabase
+    .from("predictions")
+    .select(`
+      user_id,
+      first,
+      second,
+      third,
+      first_french,
+      points,
+      profiles (
+        username
+      )
+    `)
+    .eq("race_id", race.id)
+
+  if (predErr) console.error("predictions error", predErr)
+
+  // Facultatif : trier par points desc puis username
+  const sorted = (preds || []).sort((a: any, b: any) => {
+    const pa = a.points ?? 0
+    const pb = b.points ?? 0
+    if (pb !== pa) return pb - pa
+    return (a.profiles?.username ?? "").localeCompare(b.profiles?.username ?? "")
+  })
+
+  setRacePredList(sorted)
+  setRaceRankLoading(false)
+}
 
 async function loadRaceRanking(leagueId: string, raceId: string) {
   console.log("loadRaceRanking", { leagueId, raceId })
@@ -849,7 +905,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
 ) : isFinished ? (
   <>
     <button
-      onClick={() => loadRaceRanking(selectedLeague.id, race.id)}
+      onClick={() => openRaceRankingModal(race)}
       className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
     >
       🏆 Classement
@@ -933,7 +989,102 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
             )}
           </div>
         )}
+{raceRankOpen && raceRankRace && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-slate-950/95 backdrop-blur p-6 flex flex-col max-h-[85vh]">
 
+      {/* Header sticky */}
+      <div className="sticky top-0 bg-slate-950/95 z-10 pb-3 mb-3 border-b border-white/10">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            {raceRankRace.logo_url && (
+              <img
+                src={raceRankRace.logo_url}
+                alt={raceRankRace.name}
+                className="h-12 w-20 object-contain shrink-0"
+              />
+            )}
+            <div className="min-w-0">
+              <h3 className="text-xl font-bold truncate">🏆 Classement — {raceRankRace.name}</h3>
+              <p className="text-sm text-white/70">
+                📅 {raceRankRace.race_date ? new Date(raceRankRace.race_date).toLocaleString() : "—"}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setRaceRankOpen(false)
+              setRaceRankRace(null)
+              setRaceResult(null)
+              setRacePredList([])
+            }}
+            className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition shrink-0"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+
+      {/* Content scrollable */}
+      <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+        {raceRankLoading ? (
+          <div className="text-white/70">Chargement…</div>
+        ) : (
+          <>
+            {/* Résultat officiel */}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="font-semibold mb-2">✅ Résultat officiel</div>
+
+              {!raceResult ? (
+                <div className="text-white/60">
+                  Résultat non saisi (va sur /admin pour l’ajouter).
+                </div>
+              ) : (
+                <div className="space-y-1 text-white/80">
+                  <div>🥇 {raceResult.first_place || "—"}</div>
+                  <div>🥈 {raceResult.second_place || "—"}</div>
+                  <div>🥉 {raceResult.third_place || "—"}</div>
+                  <div>🇫🇷 {raceResult.first_french || "—"}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Récap pronos + points */}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-semibold">👥 Pronostics & points</div>
+                <div className="text-sm text-white/60">{racePredList.length} joueur(s)</div>
+              </div>
+
+              {racePredList.length === 0 ? (
+                <div className="text-white/60">Aucun pronostic trouvé.</div>
+              ) : (
+                <div className="space-y-3">
+                  {racePredList.map((p: any, idx: number) => (
+                    <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-bold">{p.profiles?.username || "Utilisateur"}</div>
+                        <div className="font-extrabold">{p.points ?? 0} pts</div>
+                      </div>
+
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-1 text-sm text-white/80">
+                        <div>🥇 {p.first || "—"}</div>
+                        <div>🥈 {p.second || "—"}</div>
+                        <div>🥉 {p.third || "—"}</div>
+                        <div>🇫🇷 {p.first_french || "—"}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+)}
         {/* Pronostic modal */}
         {pronoRace && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
