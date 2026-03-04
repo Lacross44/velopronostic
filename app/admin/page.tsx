@@ -136,16 +136,25 @@ function norm(s: any) {
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
+    .replace(/[\u0300-\u036f]/g, "") // enlève accents
+    .replace(/[’']/g, "'")           // apostrophes uniformes
+    .replace(/-/g, " ")              // tirets -> espace
+    .replace(/\s+/g, " ")            // espaces multiples
 }
 
-function matchName(a: any, b: any) {
-  const A = norm(a)
-  const B = norm(b)
+function matchRider(userInput: any, official: any) {
+  const A = norm(userInput)
+  const B = norm(official)
   if (!A || !B) return false
+
+  // match exact après normalisation
   if (A === B) return true
-  return A.includes(B) || B.includes(A)
+
+  // match inclusion (prénom en plus, etc.)
+  // ex: "mathieu van der poel" contient "van der poel"
+  if (A.includes(B) || B.includes(A)) return true
+
+  return false
 }
 
 async function calculatePoints(raceId: string) {
@@ -179,20 +188,20 @@ async function calculatePoints(raceId: string) {
   for (const p of predictions) {
     let points = 0
 
-    if (matchName(p.first, r1)) points += 5
-    if (matchName(p.second, r2)) points += 4
-    if (matchName(p.third, r3)) points += 3
+    if (matchRider(p.first, r1)) points += 5
+    if (matchRider(p.second, r2)) points += 4
+    if (matchRider(p.third, r3)) points += 3
 
     const userTop3 = [p.first, p.second, p.third]
 
     userTop3.forEach((rider, idx) => {
       const correctAtIdx = realTop3[idx]
-      const isInTop3 = realTop3.some((real) => matchName(rider, real))
-      const isExactPosition = matchName(rider, correctAtIdx)
+      const isInTop3 = realTop3.some((real) => matchRider(rider, real))
+      const isExactPosition = matchRider(rider, correctAtIdx)
       if (isInTop3 && !isExactPosition) points += 1
     })
 
-    if (matchName(p.first_french, rf)) points += 2
+    if (matchRider(p.first_french, rf)) points += 2
 
     console.log("USER", p.user_id, "=>", points, {
       first: p.first,
@@ -200,7 +209,7 @@ async function calculatePoints(raceId: string) {
       third: p.third,
       first_french: p.first_french,
     })
-    
+
 if (!p.id) {
   console.error("Prediction without id:", p)
   throw new Error("Prediction sans id, impossible de mettre à jour.")
