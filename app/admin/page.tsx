@@ -100,138 +100,6 @@ export default function AdminPage() {
     setLogoFile(null)
     await loadRaces()
   }
-
-  // charge les résultats existants (si déjà saisis)
-  async function openResultsModal(race: any) {
-    setSelectedRace(race)
-
-    // reset champs par défaut
-    setFirst("")
-    setSecond("")
-    setThird("")
-    setFirstFrench("")
-
-    // si un résultat existe déjà dans results, on préremplit
-    const { data, error } = await supabase
-      .from("results")
-      .select("*")
-      .eq("race_id", race.id)
-      .single()
-
-    if (error) {
-      // pas grave si aucun résultat encore
-      return
-    }
-
-    if (data) {
-      setFirst(data.first_place || "")
-      setSecond(data.second_place || "")
-      setThird(data.third_place || "")
-      setFirstFrench(data.first_french || "")
-    }
-  }
-function norm(s: any) {
-  return (s ?? "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // enlève accents
-    .replace(/[’']/g, "'")           // apostrophes uniformes
-    .replace(/-/g, " ")              // tirets -> espace
-    .replace(/\s+/g, " ")            // espaces multiples
-}
-
-function matchRider(userInput: any, official: any) {
-  const A = norm(userInput)
-  const B = norm(official)
-  if (!A || !B) return false
-
-  // match exact après normalisation
-  if (A === B) return true
-
-  // match inclusion (prénom en plus, etc.)
-  // ex: "mathieu van der poel" contient "van der poel"
-  if (A.includes(B) || B.includes(A)) return true
-
-  return false
-}
-
-async function calculatePoints(raceId: string) {
-  const { data: res, error: resErr } = await supabase
-    .from("results")
-    .select("first_place, second_place, third_place, first_french")
-    .eq("race_id", raceId)
-    .single()
-
-  if (resErr) throw new Error("Résultats introuvables pour cette course: " + resErr.message)
-  if (!res) throw new Error("Résultats introuvables pour cette course.")
-
-  const { data: predictions, error: predErr } = await supabase
-    .from("predictions")
-    .select("id, user_id, first, second, third, first_french")
-    .eq("race_id", raceId)
-
-  if (predErr) throw new Error(predErr.message)
-  if (!predictions) return
-
-  const r1 = res.first_place
-  const r2 = res.second_place
-  const r3 = res.third_place
-  const rf = res.first_french
-  const realTop3 = [r1, r2, r3]
-
-  console.log("CALC POINTS raceId", raceId)
-  console.log("RESULTS", { r1, r2, r3, rf })
-  console.log("PRED COUNT", predictions.length)
-
-  for (const p of predictions) {
-    let points = 0
-
-    if (matchRider(p.first, r1)) points += 5
-    if (matchRider(p.second, r2)) points += 4
-    if (matchRider(p.third, r3)) points += 3
-
-    const userTop3 = [p.first, p.second, p.third]
-
-    userTop3.forEach((rider, idx) => {
-      const correctAtIdx = realTop3[idx]
-      const isInTop3 = realTop3.some((real) => matchRider(rider, real))
-      const isExactPosition = matchRider(rider, correctAtIdx)
-      if (isInTop3 && !isExactPosition) points += 1
-    })
-
-    if (matchRider(p.first_french, rf)) points += 2
-
-    console.log("USER", p.user_id, "=>", points, {
-      first: p.first,
-      second: p.second,
-      third: p.third,
-      first_french: p.first_french,
-    })
-
-if (!p.id) {
-  console.error("Prediction without id:", p)
-  throw new Error("Prediction sans id, impossible de mettre à jour.")
-}
-
-const { data: updData, error: updErr } = await supabase
-  .from("predictions")
-  .update({ points })
-  .eq("id", p.id)
-  .select("id, points")
-  .maybeSingle()
-
-if (updErr) throw new Error("Update points failed: " + updErr.message)
-
-if (!updData) {
-  throw new Error("Update points failed: aucune ligne mise à jour (RLS ? id invalide ?)")
-}
-
-console.log("UPDATED ROW:", updData)
-  }
-
-}
   async function saveResults() {
     if (!selectedRace) return
 
@@ -282,7 +150,139 @@ console.log("UPDATED ROW:", updData)
     setSelectedRace(null)
     await loadRaces()
   }
+  // charge les résultats existants (si déjà saisis)
+  async function openResultsModal(race: any) {
+    setSelectedRace(race)
 
+    // reset champs par défaut
+    setFirst("")
+    setSecond("")
+    setThird("")
+    setFirstFrench("")
+
+    // si un résultat existe déjà dans results, on préremplit
+    const { data, error } = await supabase
+      .from("results")
+      .select("*")
+      .eq("race_id", race.id)
+      .single()
+
+    if (error) {
+      // pas grave si aucun résultat encore
+      return
+    }
+
+    if (data) {
+      setFirst(data.first_place || "")
+      setSecond(data.second_place || "")
+      setThird(data.third_place || "")
+      setFirstFrench(data.first_french || "")
+    }
+  }
+function norm(s: any) {
+  return (s ?? "")
+    .toString()
+    .replace(/\u00A0/g, " ")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, "'")
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+}
+
+function matchRider(userInput: any, official: any) {
+  const A = norm(userInput)
+  const B = norm(official)
+  if (!A || !B) return false
+
+  // match exact après normalisation
+  if (A === B) return true
+
+  // match inclusion (prénom en plus, etc.)
+  // ex: "mathieu van der poel" contient "van der poel"
+  if (A.includes(B) || B.includes(A)) return true
+
+  return false
+}
+
+async function calculatePoints(raceId: string) {
+  const { data: res, error: resErr } = await supabase
+    .from("results")
+    .select("first_place, second_place, third_place, first_french")
+    .eq("race_id", raceId)
+    .single()
+
+  if (resErr) throw new Error("Résultats introuvables pour cette course: " + resErr.message)
+  if (!res) throw new Error("Résultats introuvables pour cette course.")
+
+  const { data: predictions, error: predErr } = await supabase
+    .from("predictions")
+    .select("id, user_id, first, second, third, first_french")
+    .eq("race_id", raceId)
+
+  if (predErr) throw new Error(predErr.message)
+  if (!predictions) return
+
+  const r1 = res.first_place
+  const r2 = res.second_place
+  const r3 = res.third_place
+  const rf = res.first_french
+  const realTop3 = [r1, r2, r3]
+
+  console.log("CALC POINTS raceId", raceId)
+  console.log("RESULTS", { r1, r2, r3, rf })
+  console.log("PRED COUNT", predictions.length)
+
+let updated = 0
+let failed = 0
+
+for (const p of predictions) {
+  try {
+    let points = 0
+
+    const w1 = matchRider(p.first, r1)
+    const w2 = matchRider(p.second, r2)
+    const w3 = matchRider(p.third, r3)
+    const wf = matchRider(p.first_french, rf)
+
+    if (w1) points += 5
+    if (w2) points += 4
+    if (w3) points += 3
+
+    const userTop3 = [p.first, p.second, p.third]
+    userTop3.forEach((rider, idx) => {
+      const correctAtIdx = realTop3[idx]
+      const isInTop3 = realTop3.some((real) => matchRider(rider, real))
+      const isExactPosition = matchRider(rider, correctAtIdx)
+      if (isInTop3 && !isExactPosition) points += 1
+    })
+
+    if (wf) points += 2
+
+    console.log("MATCHES", p.user_id, { w1, w2, w3, wf }, "=>", points)
+
+    const { data: updData, error: updErr } = await supabase
+      .from("predictions")
+      .update({ points })
+      .eq("id", p.id)
+      .select("id, points")
+      .maybeSingle()
+
+    if (updErr) throw updErr
+    if (!updData) throw new Error("0 ligne mise à jour (RLS ? id ?)")
+
+    updated++
+  } catch (e) {
+    failed++
+    console.error("FAILED UPDATE for prediction", p?.id, p?.user_id, e)
+  }
+}
+
+console.log("RECALC SUMMARY", { updated, failed })
+
+}
   if (loading) return <div className="p-6">Chargement...</div>
   if (!user) return <div className="p-6">Accès refusé</div>
 
