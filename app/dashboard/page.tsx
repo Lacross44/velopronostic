@@ -965,6 +965,8 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
                   <div className="grid md:grid-cols-2 gap-4">
                     {allRaces.map((race) => {
                       const active = races.find((r) => r.id === race.id)
+                      const dl = toDate(race.pronostic_deadline)
+                      const isPast = dl ? dl <= new Date() : false
                       return (
                         <div
                           key={race.id}
@@ -984,15 +986,21 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
                           </div>
 
                           <button
-                            onClick={() => toggleRace(race.id, !!active)}
-                            className={`mt-4 w-full px-3 py-2 rounded-xl border transition font-semibold ${
-                              active
-                                ? "bg-red-500/20 hover:bg-red-500/30 border-red-300/20"
-                                : "bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-300/20"
-                            }`}
-                          >
-                            {active ? "Retirer de la ligue" : "Ajouter à la ligue"}
-                          </button>
+  disabled={isPast || selectedLeague?.status === "active"}
+  onClick={() => {
+    if (isPast) return
+    toggleRace(race.id, !!active)
+  }}
+  className={`px-3 py-1 rounded ${
+    isPast
+      ? "bg-white/5 text-white/40 border border-white/10 cursor-not-allowed"
+      : active
+        ? "bg-red-500 text-white"
+        : "bg-green-500 text-white"
+  }`}
+>
+  {isPast ? "Terminée" : active ? "Retirer" : "Ajouter"}
+</button>
                         </div>
                       )
                     })}
