@@ -503,6 +503,36 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       alert(`Code ligue : ${selectedLeague.code}`)
     }
   }
+  async function deleteLeague() {
+  if (!selectedLeague) return
+  const ok = confirm(`Supprimer la ligue "${selectedLeague.name}" ?`)
+  if (!ok) return
+
+  // 1) Supprimer les liaisons courses
+  const { error: lrErr } = await supabase
+    .from("league_races")
+    .delete()
+    .eq("league_id", selectedLeague.id)
+  if (lrErr) return alert(lrErr.message)
+
+  // 2) Supprimer les membres
+  const { error: lmErr } = await supabase
+    .from("league_members")
+    .delete()
+    .eq("league_id", selectedLeague.id)
+  if (lmErr) return alert(lmErr.message)
+
+  // 3) Supprimer la ligue
+  const { error: lErr } = await supabase
+    .from("leagues")
+    .delete()
+    .eq("id", selectedLeague.id)
+  if (lErr) return alert(lErr.message)
+
+  alert("Ligue supprimée ✅")
+  setSelectedLeague(null)
+  await loadData()
+}
 
   async function openProno(race: Race) {
     if (!selectedLeague) {
@@ -768,6 +798,14 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
                     </button>
                   </>
                 )}
+                {isOwner && (
+  <button
+    onClick={deleteLeague}
+    className="px-4 py-2 rounded-xl bg-red-500/30 hover:bg-red-500/45 border border-red-300/20 transition"
+  >
+    🗑️ Supprimer la ligue
+  </button>
+)}
 
                 {isOwner && selectedLeague.status === "active" && (
                   <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-300/20 text-emerald-100">
