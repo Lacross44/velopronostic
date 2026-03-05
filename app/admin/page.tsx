@@ -208,6 +208,7 @@ function matchRider(userInput: any, official: any) {
 }
 
 async function calculatePoints(raceId: string) {
+  console.log("SUPABASE URL USED BY APP:", process.env.NEXT_PUBLIC_SUPABASE_URL)
   const { data: res, error: resErr } = await supabase
     .from("results")
     .select("first_place, second_place, third_place, first_french")
