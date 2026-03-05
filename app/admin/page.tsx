@@ -263,17 +263,32 @@ for (const p of predictions) {
 
     console.log("MATCHES", p.user_id, { w1, w2, w3, wf }, "=>", points)
 
-    const { data: updData, error: updErr } = await supabase
-      .from("predictions")
-      .update({ points })
-      .eq("id", p.id)
-      .select("id, points")
-      .maybeSingle()
+const { data: updRows, error: updErr } = await supabase
+  .from("predictions")
+  .update({ points })
+  .eq("id", p.id)
+  .select("id, points")
 
-    if (updErr) throw updErr
-    if (!updData) throw new Error("0 ligne mise à jour (RLS ? id ?)")
+if (updErr) {
+  console.error("UPDATE ERROR", p.id, updErr)
+  throw new Error("Update points failed: " + updErr.message)
+}
 
-    updated++
+console.log("UPDATED COUNT", p.id, updRows?.length ?? 0, updRows)
+
+if (!updRows || updRows.length === 0) {
+  console.warn("0 row updated for prediction id", p.id, "user", p.user_id)
+}
+
+// ✅ lecture immédiate DB (preuve)
+const { data: checkRow, error: checkErr } = await supabase
+  .from("predictions")
+  .select("id, points")
+  .eq("id", p.id)
+  .single()
+
+if (checkErr) console.error("CHECK ERROR", checkErr)
+console.log("AFTER UPDATE DB", checkRow)
   } catch (e) {
     failed++
     console.error("FAILED UPDATE for prediction", p?.id, p?.user_id, e)
