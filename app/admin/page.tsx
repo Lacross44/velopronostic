@@ -277,9 +277,8 @@ if (updErr) {
 
 console.log("UPDATED COUNT", p.id, updRows?.length ?? 0, updRows)
 
-if (!updRows || updRows.length === 0) {
-  console.warn("0 row updated for prediction id", p.id, "user", p.user_id)
-}
+if (updRows && updRows.length > 0) updated += 1
+else failed += 1
 
 // ✅ lecture immédiate DB (preuve)
 const { data: checkRow, error: checkErr } = await supabase
@@ -294,9 +293,10 @@ console.log("AFTER UPDATE DB", checkRow)
     failed++
     console.error("FAILED UPDATE for prediction", p?.id, p?.user_id, e)
   }
+  
+console.log("RECALC SUMMARY", { updated, failed })
 }
 
-console.log("RECALC SUMMARY", { updated, failed })
 
 }
   if (loading) return <div className="p-6">Chargement...</div>
