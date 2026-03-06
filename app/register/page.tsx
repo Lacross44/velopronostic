@@ -9,7 +9,7 @@ export default function Register() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [username, setUsername] = useState("")
+  const [info, setInfo] = useState("")
     
   useEffect(() => {
     const checkSession = async () => {
@@ -36,10 +36,19 @@ export default function Register() {
     } else {
       alert(error.message)
     }
+    if (!error) {
+  setInfo("Compte créé ! Vérifie ta boîte mail et clique sur le lien de confirmation.")
+}
   }
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center">
+      {info && (
+  <div className="text-green-400 text-sm mb-3">
+    {info}
+  </div>
+)}
       <form onSubmit={handleRegister} className="bg-white p-6 rounded shadow">
         <h1 className="text-xl font-bold mb-4">Créer un compte</h1>
 
@@ -56,13 +65,6 @@ export default function Register() {
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 w-full mb-3"
-        />
-        <input
-          type="text"
-          placeholder="Pseudo"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
           className="border p-2 w-full mb-3"
         />
 
