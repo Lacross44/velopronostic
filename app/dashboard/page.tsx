@@ -873,22 +873,67 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       Classement disponible après la saisie des résultats.
     </div>
   ) : (
-    <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-      {leaderboard.map((player: any, index: number) => (
-        <div
-          key={player.user_id ?? index}
-          className="flex justify-between items-center px-4 py-3 border-b border-white/10"
-        >
-          <div className="flex items-center gap-3">
-            <span className="w-7 text-white/70">{index + 1}.</span>
-            <span className="font-semibold">{player.username}</span>
+    <>
+      {leaderboard.length >= 3 && (
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+            <div className="text-2xl mb-1">🥈</div>
+            <div className="font-bold truncate">{leaderboard[1].username}</div>
+            <div className="text-white/70">{leaderboard[1].total_points} pts</div>
           </div>
-          <span className="font-extrabold">
-            {(player.total_points ?? player.total ?? 0)} pts
-          </span>
+
+          <div className="rounded-2xl border border-yellow-300/20 bg-yellow-500/15 p-4 text-center shadow-lg">
+            <div className="text-3xl mb-1">🥇</div>
+            <div className="font-extrabold truncate">{leaderboard[0].username}</div>
+            <div className="text-white/80">{leaderboard[0].total_points} pts</div>
+            <div className="text-xs text-yellow-100/80 mt-1">Leader de la ligue</div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+            <div className="text-2xl mb-1">🥉</div>
+            <div className="font-bold truncate">{leaderboard[2].username}</div>
+            <div className="text-white/70">{leaderboard[2].total_points} pts</div>
+          </div>
         </div>
-      ))}
-    </div>
+      )}
+
+      <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+        {leaderboard.map((player: any, index: number) => {
+          const isLast = index === leaderboard.length - 1
+          const isFirst = index === 0
+          const isMe = player.user_id === user?.id
+
+          return (
+            <div
+              key={player.user_id ?? index}
+              className={`flex justify-between items-center px-4 py-3 border-b border-white/10 ${
+                isMe ? "bg-indigo-500/10" : ""
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-8 text-white/70">
+                  {isFirst ? "👑" : isLast ? "🛞" : `${index + 1}.`}
+                </span>
+
+                <span className={`truncate ${isMe ? "font-extrabold text-indigo-200" : "font-semibold"}`}>
+                  {player.username}
+                </span>
+
+                {isLast && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-red-500/15 border border-red-300/20 text-red-200">
+                    Pompe à vélo 😅
+                  </span>
+                )}
+              </div>
+
+              <span className="font-extrabold shrink-0">
+                {player.total_points} pts
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )}
 </div>
             {/* Race ranking */}
