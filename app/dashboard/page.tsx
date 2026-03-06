@@ -921,7 +921,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
 
                 {isLast && (
                   <span className="text-xs px-2 py-1 rounded-full bg-red-500/15 border border-red-300/20 text-red-200">
-                    Pompe à vélo 😅
+                    Lanterne rouge 🚲
                   </span>
                 )}
               </div>
