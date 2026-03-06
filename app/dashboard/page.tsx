@@ -696,7 +696,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
         <div className="text-3xl">🚴</div>
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Velopronostic
+            Velopronos
           </h1>
           <p className="text-sm text-white/70 mt-1">
             Bonjour <span className="font-semibold text-white">{profile?.username}</span>
@@ -706,20 +706,17 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
     </div>
 
     {/* Bloc règles */}
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="font-bold text-lg mb-3">📜 Règles du jeu</h2>
+<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+  <h2 className="font-bold text-lg mb-3">📜 Règles du jeu</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-white/80">
-        <p>• Pronostics ouverts sur les prochaines courses avant la deadline.</p>
-        <p>• 5 pts pour le bon vainqueur.</p>
-        <p>• 4 pts pour le bon 2e.</p>
-        <p>• 3 pts pour le bon 3e.</p>
-        <p>• 2 pts pour le 1er Français.</p>
-        <p>• +1 pt si un coureur du top 3 est trouvé mais mal placé.</p>
-        <p>• Après la deadline, les pronos sont verrouillés.</p>
-        <p>• Les pronos et classements deviennent visibles après la course.</p>
-      </div>
-    </div>
+  <div className="text-sm text-white/80 space-y-1">
+    <p>Pronostique les prochaines courses avant la deadline !</p>
+    <p>Barème : </p>
+    <p>Vainqueur = 5 pts • 2e = 4pts • 3e = 3pts • 1er Français = 2 pts</p>
+    <p>+1 pt si un coureur du top 3 est trouvé mais mal placé.</p>
+    <p>Après la deadline, Pronos verrouillés et visibles par tous.</p>
+  </div>
+</div>
 
     {/* Bloc bouton déconnexion */}
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex xl:block justify-end">
