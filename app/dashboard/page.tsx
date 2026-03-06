@@ -687,21 +687,35 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-fuchsia-950 text-white">
       <div className="max-w-6xl mx-auto p-6 md:p-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">⚔️ Velopronostic</h1>
-            <p className="text-white/70 mt-1">
-              Bonjour <span className="font-semibold text-white">{profile?.username}</span>
-            </p>
-          </div>
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-8">
+  <div className="flex-1">
+    <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+      ⚔️ Velopronostic
+    </h1>
 
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition"
-          >
-            🚪 Déconnexion
-          </button>
-        </div>
+    <p className="text-white/70 mt-1 mb-4">
+      Bonjour <span className="font-semibold text-white">{profile?.username}</span>
+    </p>
+
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <h2 className="font-bold text-lg mb-2">📜 Règles du jeu</h2>
+      <div className="text-sm text-white/80 space-y-1">
+        <p>• Tu peux pronostiquer les prochaines courses ouvertes avant la deadline.</p>
+        <p>• Barème : 5 pts pour le vainqueur, 4 pts pour le 2e, 3 pts pour le 3e.</p>
+        <p>• 2 pts pour le 1er Français.</p>
+        <p>• +1 pt si un coureur du top 3 est trouvé mais mal placé.</p>
+        <p>• Après la deadline, les pronos sont verrouillés et visibles par la ligue.</p>
+      </div>
+    </div>
+  </div>
+
+  <button
+    onClick={handleLogout}
+    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition shrink-0"
+  >
+    🚪 Déconnexion
+  </button>
+</div>
 
         {/* League actions */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
