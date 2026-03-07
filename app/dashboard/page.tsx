@@ -695,9 +695,19 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       <div className="flex items-center gap-3">
         <div className="text-3xl">🚴</div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Velopronos
-          </h1>
+          <div className="flex items-center gap-3">
+  
+  <img
+    src="/images/logo-velopronostic.png"
+    alt="Logo Velopronostic"
+    className="h-12 w-12 object-contain"
+  />
+
+  <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+    Velopronostic
+  </h1>
+
+</div>
           <p className="text-sm text-white/70 mt-1">
             Bonjour <span className="font-semibold text-white">{profile?.username}</span>
           </p>
