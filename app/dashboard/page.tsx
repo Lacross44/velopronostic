@@ -698,17 +698,16 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
   <img
     src="/images/logo-velopronostic.png"
     alt="Logo Velopronostic"
-    className="h-12 w-12 object-contain"
+    className="h-14 w-14 object-contain"
   />
-
+  <p>
   <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
     Velopronos
   </h1>
+  </p>
 
 </div>
-          <p className="text-sm text-white/70 mt-1">
-            Bonjour <span className="font-semibold text-white">{profile?.username}</span>
-          </p>
+
         </div>
       </div>
     </div>
@@ -728,6 +727,9 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
 
     {/* Bloc bouton déconnexion */}
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex xl:block justify-end">
+                <p className="text-sm text-white/70 mt-1">
+            Bonjour <span className="font-semibold text-white">{profile?.username}</span>
+          </p>
       <button
         onClick={handleLogout}
         className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition w-full xl:w-auto"
