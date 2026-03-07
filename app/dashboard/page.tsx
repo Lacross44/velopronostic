@@ -688,56 +688,61 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       <div className="max-w-6xl mx-auto p-6 md:p-10">
         {/* Header */}
 <div className="mb-8">
-  <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_auto] gap-4 items-start">
+  <div className="grid grid-cols-1 xl:grid-cols-[220px_1fr_240px] gap-4 items-stretch">
     
-    {/* Bloc logo / titre */}
+    {/* Colonne gauche : logo + nom */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col items-center justify-center text-center">
+      <img
+        src="/images/logo-velopronostic.png"
+        alt="Logo Velopronostic"
+        className="h-20 w-20 object-contain mb-3"
+      />
+
+      <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
+        Velopronostic
+      </h1>
+    </div>
+
+    {/* Colonne centrale : règles */}
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <div className="flex items-center gap-3">
-        <div>
-          <div className="flex items-center gap-3">
-            
-  <img
-    src="/images/logo-velopronostic.png"
-    alt="Logo Velopronostic"
-    className="h-14 w-14 object-contain"
-  />
-</div>
-  <p>
-  <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-    Velopronos
-  </h1>
-  </p>
+      <h2 className="font-bold text-lg mb-3">📜 Règles du jeu</h2>
 
-
-
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-white/80">
+        <p>• Pronostique les prochaines courses avant la deadline.</p>
+        <p>• 5 pts pour le vainqueur.</p>
+        <p>• 4 pts pour le bon 2e.</p>
+        <p>• 3 pts pour le bon 3e.</p>
+        <p>• 2 pts pour le 1er Français.</p>
+        <p>• +1 pt si un coureur du top 3 est trouvé mais mal placé.</p>
+        <p>• Après la deadline, les pronos sont verrouillés.</p>
+        <p>• Les pronos et classements deviennent visibles après la course.</p>
       </div>
     </div>
 
-    {/* Bloc règles */}
-<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-  <h2 className="font-bold text-lg mb-3">📜 Règles du jeu</h2>
+    {/* Colonne droite : profil + actions */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col justify-between">
+      <div>
+        <p className="text-sm text-white/60 mb-1">Connecté en tant que</p>
+        <p className="text-xl font-bold text-white mb-4">
+          {profile?.username || "Utilisateur"}
+        </p>
+      </div>
 
-  <div className="text-sm text-white/80 space-y-1">
-    <p>Pronostique les prochaines courses avant la deadline !</p>
-    <p>Barème : </p>
-    <p>Vainqueur = 5 pts • 2e = 4pts • 3e = 3pts • 1er Français = 2 pts</p>
-    <p>+1 pt si un coureur du top 3 est trouvé mais mal placé.</p>
-    <p>Après la deadline, Pronos verrouillés et visibles par tous.</p>
-  </div>
-</div>
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={() => alert("Paramètres à venir")}
+          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition"
+        >
+          ⚙️ Paramètres
+        </button>
 
-    {/* Bloc bouton déconnexion */}
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex xl:block justify-end">
-                <p className="text-sm text-white/70 mt-1">
-            Bonjour <span className="font-semibold text-white">{profile?.username}</span>
-          </p>
-      <button
-        onClick={handleLogout}
-        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition w-full xl:w-auto"
-      >
-        🚪 Déconnexion
-      </button>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-300/20 transition"
+        >
+          🚪 Déconnexion
+        </button>
+      </div>
     </div>
   </div>
 </div>
