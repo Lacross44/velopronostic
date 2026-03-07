@@ -695,11 +695,13 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       <div className="flex items-center gap-3">
         <div>
           <div className="flex items-center gap-3">
+            <p>
   <img
     src="/images/logo-velopronostic.png"
     alt="Logo Velopronostic"
     className="h-14 w-14 object-contain"
   />
+  </p>
   <p>
   <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
     Velopronos
