@@ -695,7 +695,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       <img
         src="/images/logo-velopronostic.png"
         alt="Logo Velopronostic"
-        className="h-20 w-20 object-contain mb-3"
+        className="h-25 w-25 object-contain mb-3"
       />
 
       <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
@@ -729,12 +729,12 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       </div>
 
       <div className="flex flex-col gap-3">
-        <button
-          onClick={() => alert("Paramètres à venir")}
-          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition"
-        >
-          ⚙️ Paramètres
-        </button>
+      <button
+       onClick={() => router.push("/settings")}
+       className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition"
+      >
+      ⚙️ Paramètres
+      </button>
 
         <button
           onClick={handleLogout}
