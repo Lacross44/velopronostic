@@ -100,56 +100,51 @@ export default function AdminPage() {
     setLogoFile(null)
     await loadRaces()
   }
-  async function saveResults() {
-    if (!selectedRace) return
 
-    if (!first || !second || !third || !firstFrench) {
-      alert("Merci de saisir Top 3 + 1er français")
-      return
-    }
+async function saveResults() {
+  if (!selectedRace) return
 
-    // 1) upsert dans results
-    const { error: upsertError } = await supabase
-      .from("results")
-      .upsert(
-        {
-          race_id: selectedRace.id,
-          first_place: first,
-          second_place: second,
-          third_place: third,
-          first_french: firstFrench,
-        },
-        { onConflict: "race_id" }
-      )
-
-    if (upsertError) {
-      console.error(upsertError)
-      alert("Erreur enregistrement résultats")
-      return
-    }
-
-    try {
-  await calculatePoints(selectedRace.id)
-} catch (e: any) {
-  alert("Erreur recalcul points: " + (e?.message ?? "inconnue"))
-  return
-}
-
-    // 2) recalcul en base (RPC)
-    const { error: rpcError } = await supabase.rpc("calculate_points_for_race", {
-      p_race_id: selectedRace.id,
-    })
-
-    if (rpcError) {
-      console.error(rpcError)
-      alert("Résultats OK, mais erreur recalcul points (RPC)")
-      return
-    }
-
-    alert("Résultats enregistrés + points recalculés ✅")
-    setSelectedRace(null)
-    await loadRaces()
+  if (!first || !second || !third || !firstFrench) {
+    alert("Merci de saisir Top 3 + 1er français")
+    return
   }
+
+  // 1️⃣ Enregistrer les résultats
+  const { error: upsertError } = await supabase
+    .from("results")
+    .upsert(
+      {
+        race_id: selectedRace.id,
+        first_place: first,
+        second_place: second,
+        third_place: third,
+        first_french: firstFrench,
+      },
+      { onConflict: "race_id" }
+    )
+
+  if (upsertError) {
+    console.error(upsertError)
+    alert("Erreur enregistrement résultats")
+    return
+  }
+
+  // 2️⃣ Recalcul des points via la fonction SQL
+  const { error: rpcError } = await supabase.rpc("recalculate_points_for_race", {
+    p_race_id: selectedRace.id,
+  })
+
+  if (rpcError) {
+    console.error(rpcError)
+    alert("Erreur recalcul points")
+    return
+  }
+
+  alert("Résultats enregistrés + points recalculés ✅")
+
+  setSelectedRace(null)
+  await loadRaces()
+}
   // charge les résultats existants (si déjà saisis)
   async function openResultsModal(race: any) {
     setSelectedRace(race)
@@ -207,98 +202,7 @@ function matchRider(userInput: any, official: any) {
   return false
 }
 
-async function calculatePoints(raceId: string) {
-  console.log("SUPABASE URL USED BY APP:", process.env.NEXT_PUBLIC_SUPABASE_URL)
-  const { data: res, error: resErr } = await supabase
-    .from("results")
-    .select("first_place, second_place, third_place, first_french")
-    .eq("race_id", raceId)
-    .single()
 
-  if (resErr) throw new Error("Résultats introuvables pour cette course: " + resErr.message)
-  if (!res) throw new Error("Résultats introuvables pour cette course.")
-
-  const { data: predictions, error: predErr } = await supabase
-    .from("predictions")
-    .select("id, user_id, first, second, third, first_french")
-    .eq("race_id", raceId)
-
-  if (predErr) throw new Error(predErr.message)
-  if (!predictions) return
-
-  const r1 = res.first_place
-  const r2 = res.second_place
-  const r3 = res.third_place
-  const rf = res.first_french
-  const realTop3 = [r1, r2, r3]
-
-  console.log("CALC POINTS raceId", raceId)
-  console.log("RESULTS", { r1, r2, r3, rf })
-  console.log("PRED COUNT", predictions.length)
-
-let updated = 0
-let failed = 0
-
-for (const p of predictions) {
-  try {
-    let points = 0
-
-    const w1 = matchRider(p.first, r1)
-    const w2 = matchRider(p.second, r2)
-    const w3 = matchRider(p.third, r3)
-    const wf = matchRider(p.first_french, rf)
-
-    if (w1) points += 5
-    if (w2) points += 4
-    if (w3) points += 3
-
-    const userTop3 = [p.first, p.second, p.third]
-    userTop3.forEach((rider, idx) => {
-      const correctAtIdx = realTop3[idx]
-      const isInTop3 = realTop3.some((real) => matchRider(rider, real))
-      const isExactPosition = matchRider(rider, correctAtIdx)
-      if (isInTop3 && !isExactPosition) points += 1
-    })
-
-    if (wf) points += 2
-
-    console.log("MATCHES", p.user_id, { w1, w2, w3, wf }, "=>", points)
-
-const { data: updRows, error: updErr } = await supabase
-  .from("predictions")
-  .update({ points })
-  .eq("id", p.id)
-  .select("id, points")
-
-if (updErr) {
-  console.error("UPDATE ERROR", p.id, updErr)
-  throw new Error("Update points failed: " + updErr.message)
-}
-
-console.log("UPDATED COUNT", p.id, updRows?.length ?? 0, updRows)
-
-if (updRows && updRows.length > 0) updated += 1
-else failed += 1
-
-// ✅ lecture immédiate DB (preuve)
-const { data: checkRow, error: checkErr } = await supabase
-  .from("predictions")
-  .select("id, points")
-  .eq("id", p.id)
-  .single()
-
-if (checkErr) console.error("CHECK ERROR", checkErr)
-console.log("AFTER UPDATE DB", checkRow)
-  } catch (e) {
-    failed++
-    console.error("FAILED UPDATE for prediction", p?.id, p?.user_id, e)
-  }
-  
-console.log("RECALC SUMMARY", { updated, failed })
-}
-
-
-}
   if (loading) return <div className="p-6">Chargement...</div>
   if (!user) return <div className="p-6">Accès refusé</div>
 
