@@ -289,7 +289,7 @@ const [raceRankLoading, setRaceRankLoading] = useState(false)
     setLeaderboard(data || [])
   }
 
-  async function openRaceRankingModal(race: any) {
+ async function openRaceRankingModal(race: any) {
   if (!selectedLeague) return
 
   setRaceRankOpen(true)
@@ -308,7 +308,27 @@ const [raceRankLoading, setRaceRankLoading] = useState(false)
   if (resErr) console.error("results error", resErr)
   setRaceResult(res || null)
 
-  // 2) Pronos des membres de la ligue + points
+  // 2) Membres de la ligue
+  const { data: members, error: membersErr } = await supabase
+    .from("league_members")
+    .select("user_id")
+    .eq("league_id", selectedLeague.id)
+
+  if (membersErr) {
+    console.error("members error", membersErr)
+    setRaceRankLoading(false)
+    return
+  }
+
+  const memberIds = members?.map((m: any) => m.user_id) || []
+
+  if (memberIds.length === 0) {
+    setRacePredList([])
+    setRaceRankLoading(false)
+    return
+  }
+
+  // 3) Pronos de la course, filtrés sur les membres de la ligue
   const { data: preds, error: predErr } = await supabase
     .from("predictions")
     .select(`
@@ -323,10 +343,14 @@ const [raceRankLoading, setRaceRankLoading] = useState(false)
       )
     `)
     .eq("race_id", race.id)
+    .in("user_id", memberIds)
 
-  if (predErr) console.error("predictions error", predErr)
+  if (predErr) {
+    console.error("predictions error", predErr)
+    setRaceRankLoading(false)
+    return
+  }
 
-  // Facultatif : trier par points desc puis username
   const sorted = (preds || []).sort((a: any, b: any) => {
     const pa = a.points ?? 0
     const pb = b.points ?? 0
@@ -753,7 +777,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
             onClick={createLeague}
             className="flex-1 rounded-2xl px-4 py-3 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-300/20 transition font-semibold"
           >
-            ✨ Créer une ligue
+            ✨ Créer une ligue (max : 10 joueurs)
           </button>
           <button
             onClick={joinLeague}
