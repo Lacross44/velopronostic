@@ -26,16 +26,31 @@ export default function AdminPage() {
     init()
   }, [])
 
-  async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setLoading(false)
-      return
-    }
-    setUser(user)
-    await loadRaces()
-    setLoading(false)
+async function init() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    window.location.href = "/login"
+    return
   }
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (error || profile?.role !== "admin") {
+    window.location.href = "/dashboard"
+    return
+  }
+
+  setUser(user)
+  await loadRaces()
+  setLoading(false)
+}
 
   async function loadRaces() {
     const { data, error } = await supabase

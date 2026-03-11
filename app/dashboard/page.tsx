@@ -760,7 +760,7 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       </div>
 
       <div className="flex flex-col gap-3">
-        {isAdmin && (
+{profile?.role === "admin" && (
   <button
     onClick={() => router.push("/admin")}
     className="px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-300/20 transition"
