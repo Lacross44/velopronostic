@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [leagues, setLeagues] = useState<League[]>([])
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const [races, setRaces] = useState<Race[]>([])
   const [showAllRaces, setShowAllRaces] = useState(true)
@@ -143,6 +144,12 @@ const [raceRankLoading, setRaceRankLoading] = useState(false)
     } else {
       setNeedsUsername(false)
     }
+
+    setProfile(profileData)
+
+if (profileData?.role === "admin") {
+  setIsAdmin(true)
+}
 
     // leagues
     const { data: memberships, error: memErr } = await supabase
@@ -753,6 +760,14 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       </div>
 
       <div className="flex flex-col gap-3">
+        {isAdmin && (
+  <button
+    onClick={() => router.push("/admin")}
+    className="px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-300/20 transition"
+  >
+    🛠 Admin
+  </button>
+)}
       <button
        onClick={() => router.push("/settings")}
        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition"
