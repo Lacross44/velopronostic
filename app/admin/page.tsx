@@ -464,7 +464,7 @@ export default function AdminPage() {
                 <select
                   value={selectedRaceId}
                   onChange={(e) => setSelectedRaceId(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+                  className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white"
                 >
                   <option value="" className="text-black">Choisir une course</option>
                   {races.map((race) => (
