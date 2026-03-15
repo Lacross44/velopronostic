@@ -22,14 +22,20 @@ type Rider = {
   is_active?: boolean | null
 }
 
+type RaceGroup = {
+  id: string
+  name: string
+  slug?: string | null
+  year?: number | null
+  category?: string | null
+}
+
 export default function AdminPage() {
   const router = useRouter()
 
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
-
-  const [tab, setTab] = useState<"overview" | "races" | "results" | "riders">("overview")
 
   const [races, setRaces] = useState<Race[]>([])
   const [riders, setRiders] = useState<Rider[]>([])
@@ -60,6 +66,14 @@ export default function AdminPage() {
   const [riderNationality, setRiderNationality] = useState("")
   const [riderTeam, setRiderTeam] = useState("")
   const [riderSearch, setRiderSearch] = useState("")
+  const [tab, setTab] = useState<"overview" | "races" | "results" | "riders" | "groups">("overview")
+
+const [raceGroups, setRaceGroups] = useState<RaceGroup[]>([])
+
+const [groupName, setGroupName] = useState("")
+const [groupSlug, setGroupSlug] = useState("")
+const [groupYear, setGroupYear] = useState("")
+const [groupCategory, setGroupCategory] = useState("")
 
   const selectedRace = useMemo(
     () => races.find((r) => r.id === selectedRaceId) || null,
@@ -94,7 +108,7 @@ export default function AdminPage() {
     setUser(user)
     setProfile(profile)
 
-    await Promise.all([loadRaces(), loadRiders(), loadStats()])
+    await Promise.all([loadRaces(), loadRiders(), loadRaceGroups(), loadStats()])
     setLoading(false)
   }
 
@@ -132,6 +146,50 @@ export default function AdminPage() {
 
     setRaces((data || []) as Race[])
   }
+
+  async function loadRaceGroups() {
+  const { data, error } = await supabase
+    .from("race_groups")
+    .select("*")
+    .order("year", { ascending: false })
+    .order("name", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    return
+  }
+
+  setRaceGroups((data || []) as RaceGroup[])
+}
+
+async function createRaceGroup() {
+  if (!groupName.trim()) {
+    alert("Le nom du groupe est obligatoire.")
+    return
+  }
+
+  const { error } = await supabase.from("race_groups").insert({
+    name: groupName.trim(),
+    slug: groupSlug.trim() || null,
+    year: groupYear ? Number(groupYear) : null,
+    category: groupCategory.trim() || null,
+  })
+
+  if (error) {
+    console.error(error)
+    alert("Erreur création groupe : " + error.message)
+    return
+  }
+
+  alert("Groupe de courses créé ✅")
+
+  setGroupName("")
+  setGroupSlug("")
+  setGroupYear("")
+  setGroupCategory("")
+
+  await loadRaceGroups()
+}
 
   async function loadRiders() {
     const { data, error } = await supabase
@@ -331,23 +389,24 @@ export default function AdminPage() {
         {/* Tabs */}
         <div className="flex flex-wrap gap-3 mb-6">
           {[
-            ["overview", "📊 Vue d’ensemble"],
-            ["races", "🏁 Courses"],
-            ["results", "✅ Résultats"],
-            ["riders", "🚴 Coureurs"],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setTab(key as any)}
-              className={`px-4 py-2 rounded-xl border transition ${
-                tab === key
-                  ? "bg-indigo-500/30 border-indigo-300/20"
-                  : "bg-white/5 border-white/10 hover:bg-white/10"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+  ["overview", "📊 Vue d’ensemble"],
+  ["races", "🏁 Courses"],
+  ["results", "✅ Résultats"],
+  ["riders", "🚴 Coureurs"],
+  ["groups", "🗂 Groupes de courses"],
+].map(([key, label]) => (
+  <button
+    key={key}
+    onClick={() => setTab(key as any)}
+    className={`px-4 py-2 rounded-xl border transition ${
+      tab === key
+        ? "bg-indigo-500/30 border-indigo-300/20"
+        : "bg-white/5 border-white/10 hover:bg-white/10"
+    }`}
+  >
+    {label}
+  </button>
+))}
         </div>
 
         {/* Overview */}
@@ -608,6 +667,77 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {tab === "groups" && (
+  <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 className="text-2xl font-bold mb-4">Créer un groupe de courses</h2>
+
+      <div className="space-y-4">
+        <input
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+          placeholder="Nom du groupe (ex : Critérium du Dauphiné)"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <input
+          value={groupSlug}
+          onChange={(e) => setGroupSlug(e.target.value)}
+          placeholder="Slug (ex : dauphine-2026)"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <input
+          type="number"
+          value={groupYear}
+          onChange={(e) => setGroupYear(e.target.value)}
+          placeholder="Année"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <input
+          value={groupCategory}
+          onChange={(e) => setGroupCategory(e.target.value)}
+          placeholder="Catégorie (ex : stage_race)"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <button
+          onClick={createRaceGroup}
+          className="w-full px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-semibold"
+        >
+          Créer le groupe
+        </button>
+      </div>
+    </div>
+
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 className="text-2xl font-bold mb-4">Groupes existants</h2>
+
+      <div className="space-y-3">
+        {raceGroups.map((group) => (
+          <div
+            key={group.id}
+            className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4"
+          >
+            <div className="min-w-0">
+              <div className="font-bold truncate">{group.name}</div>
+              <div className="text-sm text-white/60">
+                {group.year || "—"} • {group.category || "—"}
+              </div>
+              <div className="text-xs text-white/50">{group.slug || "—"}</div>
+            </div>
+          </div>
+        ))}
+
+        {raceGroups.length === 0 && (
+          <div className="text-white/60">Aucun groupe de courses pour le moment.</div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   )
