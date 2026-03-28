@@ -53,6 +53,12 @@ export default function AdminPage() {
   const [deadline, setDeadline] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
 
+  // Modif courses
+  const [editingRaceId, setEditingRaceId] = useState("")
+  const [editName, setEditName] = useState("")
+  const [editRaceDate, setEditRaceDate] = useState("")
+  const [editDeadline, setEditDeadline] = useState("")
+
   // Résultats
   const [selectedRaceId, setSelectedRaceId] = useState("")
   const [first, setFirst] = useState("")
@@ -252,6 +258,44 @@ async function createRaceGroup() {
     await loadRaces()
     await loadStats()
   }
+
+  function startEditRace(race: any) {
+  setEditingRaceId(race.id)
+  setEditName(race.name || "")
+  setEditRaceDate(
+    race.race_date ? new Date(race.race_date).toISOString().slice(0, 16) : ""
+  )
+  setEditDeadline(
+    race.pronostic_deadline
+      ? new Date(race.pronostic_deadline).toISOString().slice(0, 16)
+      : ""
+  )
+}
+
+async function updateRace() {
+  if (!editingRaceId) return
+
+  const { error } = await supabase
+    .from("races")
+    .update({
+      name: editName,
+      race_date: editRaceDate || null,
+      pronostic_deadline: editDeadline || null,
+    })
+    .eq("id", editingRaceId)
+
+  if (error) {
+    alert("Erreur modification course : " + error.message)
+    return
+  }
+
+  alert("Course modifiée ✅")
+  setEditingRaceId("")
+  setEditName("")
+  setEditRaceDate("")
+  setEditDeadline("")
+  await loadRaces()
+}
 
   async function saveResults() {
     if (!selectedRace) return
@@ -500,10 +544,60 @@ async function createRaceGroup() {
                             ? new Date(race.pronostic_deadline).toLocaleString()
                             : "—"}
                         </div>
+                        <button
+                        onClick={() => startEditRace(race)}
+                        className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+                        >
+                        Modifier
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
+                {editingRaceId && (
+  <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mt-6">
+    <h2 className="text-2xl font-bold mb-4">Modifier la course</h2>
+
+    <div className="space-y-4">
+      <input
+        value={editName}
+        onChange={(e) => setEditName(e.target.value)}
+        placeholder="Nom"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <input
+        type="datetime-local"
+        value={editRaceDate}
+        onChange={(e) => setEditRaceDate(e.target.value)}
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <input
+        type="datetime-local"
+        value={editDeadline}
+        onChange={(e) => setEditDeadline(e.target.value)}
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <div className="flex gap-3">
+        <button
+          onClick={updateRace}
+          className="px-4 py-3 rounded-2xl bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-300/20 transition font-semibold"
+        >
+          Enregistrer
+        </button>
+
+        <button
+          onClick={() => setEditingRaceId("")}
+          className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
                 {races.length === 0 && (
                   <div className="text-white/60">Aucune course pour le moment.</div>
