@@ -551,7 +551,10 @@ async function updateRace() {
                         Modifier
                         </button>
                       </div>
-                       {editingRaceId && (
+                    </div>
+                  </div>
+                ))}
+                                      {editingRaceId && (
   <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mt-6">
     <h2 className="text-2xl font-bold mb-4">Modifier la course</h2>
 
@@ -595,11 +598,6 @@ async function updateRace() {
     </div>
   </div>
 )}
-                    </div>
-                  </div>
-                ))}
-               
-
                 {races.length === 0 && (
                   <div className="text-white/60">Aucune course pour le moment.</div>
                 )}
