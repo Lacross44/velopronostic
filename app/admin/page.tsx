@@ -259,32 +259,45 @@ async function createRaceGroup() {
     await loadStats()
   }
 
-  function startEditRace(race: any) {
+  function formatForDateTimeLocal(dateString?: string | null) {
+  if (!dateString) return ""
+
+  const date = new Date(dateString)
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+function startEditRace(race: any) {
   setEditingRaceId(race.id)
   setEditName(race.name || "")
-  setEditRaceDate(
-    race.race_date ? new Date(race.race_date).toISOString().slice(0, 16) : ""
-  )
-  setEditDeadline(
-    race.pronostic_deadline
-      ? new Date(race.pronostic_deadline).toISOString().slice(0, 16)
-      : ""
-  )
+  setEditRaceDate(formatForDateTimeLocal(race.race_date))
+  setEditDeadline(formatForDateTimeLocal(race.pronostic_deadline))
 }
 
 async function updateRace() {
   if (!editingRaceId) return
 
+  const payload = {
+    name: editName.trim(),
+    race_date: editRaceDate ? new Date(editRaceDate).toISOString() : null,
+    pronostic_deadline: editDeadline ? new Date(editDeadline).toISOString() : null,
+  }
+
+  console.log("UPDATE RACE PAYLOAD", payload)
+
   const { error } = await supabase
     .from("races")
-    .update({
-      name: editName,
-      race_date: editRaceDate || null,
-      pronostic_deadline: editDeadline || null,
-    })
+    .update(payload)
     .eq("id", editingRaceId)
 
   if (error) {
+    console.error(error)
     alert("Erreur modification course : " + error.message)
     return
   }
