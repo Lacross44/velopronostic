@@ -274,6 +274,8 @@ async function createRaceGroup() {
 }
 
 function startEditRace(race: any) {
+  console.log("START EDIT RACE", race)
+
   setEditingRaceId(race.id)
   setEditName(race.name || "")
   setEditRaceDate(formatForDateTimeLocal(race.race_date))
@@ -281,7 +283,17 @@ function startEditRace(race: any) {
 }
 
 async function updateRace() {
-  if (!editingRaceId) return
+  console.log("UPDATE RACE START", {
+    editingRaceId,
+    editName,
+    editRaceDate,
+    editDeadline,
+  })
+
+  if (!editingRaceId) {
+    alert("Aucune course sélectionnée")
+    return
+  }
 
   const payload = {
     name: editName.trim(),
@@ -291,22 +303,31 @@ async function updateRace() {
 
   console.log("UPDATE RACE PAYLOAD", payload)
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("races")
     .update(payload)
     .eq("id", editingRaceId)
+    .select()
+
+  console.log("UPDATE RACE RESULT", { data, error })
 
   if (error) {
-    console.error(error)
     alert("Erreur modification course : " + error.message)
     return
   }
 
+  if (!data || data.length === 0) {
+    alert("Aucune ligne modifiée. Probable blocage RLS.")
+    return
+  }
+
   alert("Course modifiée ✅")
+
   setEditingRaceId("")
   setEditName("")
   setEditRaceDate("")
   setEditDeadline("")
+
   await loadRaces()
 }
 
