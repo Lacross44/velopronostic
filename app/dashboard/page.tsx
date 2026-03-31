@@ -70,6 +70,8 @@ const [raceResult, setRaceResult] = useState<any>(null)
 const [racePredList, setRacePredList] = useState<any[]>([])
 const [raceRankLoading, setRaceRankLoading] = useState(false)
 
+const [resultsMap, setResultsMap] = useState<Record<string, boolean>>({})
+
   function toDate(d?: string | null) {
     return d ? new Date(d) : null
   }
@@ -83,6 +85,23 @@ const [raceRankLoading, setRaceRankLoading] = useState(false)
       return da - db
     })
   }, [races])
+
+
+const lastFinishedRaceWithResults = [...sortedRaces]
+  .filter((race) => {
+    const dl = toDate(race.pronostic_deadline)
+    return dl && dl <= now && resultsMap[race.id]
+  })
+  .sort((a, b) => {
+    const da = toDate(a.race_date)?.getTime() || 0
+    const db = toDate(b.race_date)?.getTime() || 0
+    return db - da
+  })[0] || null
+
+const currentRaceWaitingResults = sortedRaces.find((race) => {
+  const dl = toDate(race.pronostic_deadline)
+  return dl && dl <= now && !resultsMap[race.id]
+}) || null
 
   const nextRace = useMemo(() => {
     return (
@@ -103,7 +122,7 @@ const [raceRankLoading, setRaceRankLoading] = useState(false)
     })
     const lastFinished = finished.length ? finished[finished.length - 1] : null
     return [lastFinished, nextRace].filter(Boolean) as Race[]
-  }, [showAllRaces, sortedRaces, nextRace])
+  }, [showAllRaces, sortedRaces, nextRace])  
 
   useEffect(() => {
     const boot = async () => {
@@ -253,31 +272,31 @@ if (profileData?.role === "admin") {
     setIsOwner(roleData?.role === "owner")
   }
 
-  async function loadLeagueRaces(leagueId: string) {
-    const { data, error } = await supabase
-      .from("league_races")
-      .select(
-        `
-        races (
-          id,
-          name,
-          race_date,
-          pronostic_deadline,
-          logo_url
-        )
-      `
+async function loadLeagueRaces(leagueId: string) {
+  const { data, error } = await supabase
+    .from("league_races")
+    .select(`
+      races (
+        id,
+        name,
+        race_date,
+        pronostic_deadline,
+        logo_url
       )
-      .eq("league_id", leagueId)
+    `)
+    .eq("league_id", leagueId)
 
-    if (error) {
-      console.error(error)
-      setRaces([])
-      return
-    }
-
-    const leagueRaces: Race[] = (data || []).map((r: any) => r.races).filter(Boolean)
-    setRaces(leagueRaces)
+  if (error) {
+    console.error(error)
+    setRaces([])
+    return
   }
+
+  const leagueRaces = (data || []).map((r: any) => r.races).filter(Boolean)
+  setRaces(leagueRaces)
+
+  await loadRaceResultsStatus(leagueRaces.map((r: any) => r.id))
+}
 
   async function loadAllRaces() {
     const { data, error } = await supabase.from("races").select("*").order("race_date", { ascending: true })
@@ -295,6 +314,31 @@ if (profileData?.role === "admin") {
     }
     setLeaderboard(data || [])
   }
+
+  async function loadRaceResultsStatus(raceIds: string[]) {
+  if (!raceIds.length) {
+    setResultsMap({})
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("results")
+    .select("race_id")
+    .in("race_id", raceIds)
+
+  if (error) {
+    console.error(error)
+    setResultsMap({})
+    return
+  }
+
+  const map: Record<string, boolean> = {}
+  ;(data || []).forEach((row: any) => {
+    map[row.race_id] = true
+  })
+
+  setResultsMap(map)
+}
 
  async function openRaceRankingModal(race: any) {
   if (!selectedLeague) return
@@ -933,6 +977,38 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
     </div>
   )}
 </div>
+<div className="mt-6">
+  <h3 className="text-lg font-bold mb-3">🔥 À la une</h3>
+
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    {/* Dernière course terminée */}
+    <PriorityRaceCard
+      title="🏁 Dernière course terminée"
+      race={lastFinishedRaceWithResults}
+      actionLabel="Résultats"
+      onClick={(race: any) => openRaceRankingModal(race)}
+      emptyText="Aucun résultat encore saisi."
+    />
+
+    {/* Course en cours */}
+    <PriorityRaceCard
+      title="⏳ Course en attente de résultat"
+      race={currentRaceWaitingResults}
+      actionLabel="Pronostics"
+      onClick={(race: any) => openProno(race)}
+      emptyText="Aucune course en attente de résultat."
+    />
+
+    {/* Prochaine course */}
+    <PriorityRaceCard
+      title="🔮 Prochaine course"
+      race={nextRace}
+      actionLabel="Pronostiquer"
+      onClick={(race: any) => openProno(race)}
+      emptyText="Aucune prochaine course."
+    />
+  </div>
+</div>
                         {/* General ranking */}
 <div className="mt-8">
   <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
@@ -1400,6 +1476,61 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
   </div>
 )}
       </div>
+    </div>
+  )
+}
+function PriorityRaceCard({
+  title,
+  race,
+  actionLabel,
+  onClick,
+  emptyText,
+}: {
+  title: string
+  race: any
+  actionLabel: string
+  onClick: (race: any) => void
+  emptyText: string
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <h4 className="font-bold mb-3">{title}</h4>
+
+      {!race ? (
+        <div className="text-white/60 text-sm">{emptyText}</div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {race.logo_url && (
+              <img
+                src={race.logo_url}
+                alt={race.name}
+                className="h-12 w-16 object-contain shrink-0"
+              />
+            )}
+
+            <div className="min-w-0">
+              <div className="font-semibold truncate">{race.name}</div>
+              <div className="text-sm text-white/60">
+                {race.race_date
+                  ? new Date(race.race_date).toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onClick(race)}
+            className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-semibold"
+          >
+            {actionLabel}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
