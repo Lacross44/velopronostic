@@ -1009,6 +1009,10 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
     />
   </div>
 </div>
+<div className="mt-6 border border-red-500 p-4">
+  <h3 className="text-lg font-bold mb-3">🔥 À la une TEST</h3>
+  <div>DEBUG</div>
+</div>
                         {/* General ranking */}
 <div className="mt-8">
   <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
