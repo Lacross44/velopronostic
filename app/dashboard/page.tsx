@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
+import RiderAutocomplete from "@/components/RiderAutocomplete"
 
 type League = {
   id: string
@@ -54,6 +55,11 @@ export default function DashboardPage() {
   const [pronoLoading, setPronoLoading] = useState(false)
   const [myPrediction, setMyPrediction] = useState<any>(null)
   const [otherLeaguePredictions, setOtherLeaguePredictions] = useState<any[]>([])
+
+  const [firstRiderId, setFirstRiderId] = useState<string | null>(null)
+  const [secondRiderId, setSecondRiderId] = useState<string | null>(null)
+  const [thirdRiderId, setThirdRiderId] = useState<string | null>(null)
+  const [firstFrenchRiderId, setFirstFrenchRiderId] = useState<string | null>(null)
 
   const [p1, setP1] = useState("")
   const [p2, setP2] = useState("")
@@ -636,12 +642,22 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
       .single()
 
     if (existing) {
-      setMyPrediction(existing)
-      setP1(existing.first || "")
-      setP2(existing.second || "")
-      setP3(existing.third || "")
-      setPF(existing.first_french || "")
-    }
+  setMyPrediction(existing)
+  setP1(existing.first || "")
+  setP2(existing.second || "")
+  setP3(existing.third || "")
+  setPF(existing.first_french || "")
+
+  setFirstRiderId(existing.first_rider_id || null)
+  setSecondRiderId(existing.second_rider_id || null)
+  setThirdRiderId(existing.third_rider_id || null)
+  setFirstFrenchRiderId(existing.first_french_rider_id || null)
+} else {
+  setFirstRiderId(null)
+  setSecondRiderId(null)
+  setThirdRiderId(null)
+  setFirstFrenchRiderId(null)
+}
 
     const deadline = toDate(race.pronostic_deadline)
     const locked = deadline ? deadline <= new Date() : false
@@ -702,21 +718,34 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
 
     if (myPrediction) {
       const { error } = await supabase
-        .from("predictions")
-        .update({ first: p1, second: p2, third: p3, first_french: pF })
-        .eq("id", myPrediction.id)
+  .from("predictions")
+  .update({
+    first: p1,
+    second: p2,
+    third: p3,
+    first_french: pF,
+    first_rider_id: firstRiderId,
+    second_rider_id: secondRiderId,
+    third_rider_id: thirdRiderId,
+    first_french_rider_id: firstFrenchRiderId,
+  })
+  .eq("id", myPrediction.id)
 
       if (error) return alert(error.message)
       alert("Pronostic modifié ✅")
     } else {
       const { error } = await supabase.from("predictions").insert({
-        race_id: pronoRace.id,
-        user_id: user.id,
-        first: p1,
-        second: p2,
-        third: p3,
-        first_french: pF,
-      })
+  race_id: pronoRace.id,
+  user_id: user.id,
+  first: p1,
+  second: p2,
+  third: p3,
+  first_french: pF,
+  first_rider_id: firstRiderId,
+  second_rider_id: secondRiderId,
+  third_rider_id: thirdRiderId,
+  first_french_rider_id: firstFrenchRiderId,
+})
 
       if (error) return alert(error.message)
       alert("Pronostic enregistré ✅")
@@ -1429,30 +1458,50 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
             return (
               <div>
                 <div className="grid grid-cols-1 gap-3">
-                  <input
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                    placeholder="1er"
+                  <RiderAutocomplete
+                    label="1er"
+                    placeholder="chercher le vainqueur"
                     value={p1}
-                    onChange={(e) => setP1(e.target.value)}
-                  />
-                  <input
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                    placeholder="2e"
+                    selectedId={firstRiderId}
+                    onValueChange={setP1}
+                    onSelect={(rider) => setFirstRiderId(rider?.id || null)}
+                    excludedIds={[
+                      secondRiderId || "",
+                      thirdRiderId || "",
+                    ].filter(Boolean)}
+                    />
+                  <RiderAutocomplete
+                    label="2ème"
+                    placeholder="Qui sera 2ème ?"
                     value={p2}
-                    onChange={(e) => setP2(e.target.value)}
-                  />
-                  <input
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                    placeholder="3e"
+                    selectedId={secondRiderId}
+                    onValueChange={setP2}
+                    onSelect={(rider) => setSecondRiderId(rider?.id || null)}
+                    excludedIds={[
+                      firstRiderId || "",
+                      thirdRiderId || "",
+                    ].filter(Boolean)}
+                    />
+                  <RiderAutocomplete
+                    label="3ème"
+                    placeholder="Qui complètera le podium ?"
                     value={p3}
-                    onChange={(e) => setP3(e.target.value)}
-                  />
-                  <input
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                    placeholder="1er Français"
+                    selectedId={thirdRiderId}
+                    onValueChange={setP3}
+                    onSelect={(rider) => setThirdRiderId(rider?.id || null)}
+                    excludedIds={[
+                      secondRiderId || "",
+                      firstRiderId || "",
+                    ].filter(Boolean)}
+                    />
+                  <RiderAutocomplete
+                    label="1er français"
+                    placeholder="le frenchie du jour"
                     value={pF}
-                    onChange={(e) => setPF(e.target.value)}
-                  />
+                    selectedId={firstFrenchRiderId}
+                    onValueChange={setPF}
+                    onSelect={(rider) => setFirstFrenchRiderId(rider?.id || null)}
+                    />
                 </div>
 
                 <button
