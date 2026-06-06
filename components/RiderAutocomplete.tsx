@@ -129,8 +129,8 @@ export default function RiderAutocomplete({
             if (selectedId) onSelect(null)
         }}
           onFocus={() => {
-            if (results.length > 0) setOpen(true)
-          }}
+  if (!selectedId && results.length > 0) setOpen(true)
+}}
           placeholder={placeholder}
           className="w-full rounded-xl border border-white/10 bg-white/5 p-3 pr-20 text-white"
         />
@@ -152,7 +152,7 @@ export default function RiderAutocomplete({
         </div>
       </div>
 
-      {open && results.length > 0 && (
+      {open && !selectedId && results.length > 0 && (
         <div className="absolute z-30 mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 shadow-xl overflow-hidden">
           {results.map((rider) => (
             <button
