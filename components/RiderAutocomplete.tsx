@@ -34,6 +34,7 @@ export default function RiderAutocomplete({
   const [results, setResults] = useState<Rider[]>([])
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [hasTyped, setHasTyped] = useState(false)
 
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
@@ -98,18 +99,20 @@ export default function RiderAutocomplete({
   }, [value, excludedIds, selectedId])
 
   function handleSelect(rider: Rider) {
-    onValueChange(rider.full_name)
-    onSelect(rider)
-    setResults([])
-    setOpen(false)
-  }
+  onValueChange(rider.full_name)
+  onSelect(rider)
+  setResults([])
+  setOpen(false)
+  setHasTyped(false)
+}
 
   function handleClear() {
-    onValueChange("")
-    onSelect(null)
-    setResults([])
-    setOpen(false)
-  }
+  onValueChange("")
+  onSelect(null)
+  setResults([])
+  setOpen(false)
+  setHasTyped(false)
+}
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -121,9 +124,10 @@ export default function RiderAutocomplete({
         <input
           value={value}
           onChange={(e) => {
+            setHasTyped(true)
             onValueChange(e.target.value)
             if (selectedId) onSelect(null)
-          }}
+        }}
           onFocus={() => {
             if (results.length > 0) setOpen(true)
           }}
@@ -168,11 +172,16 @@ export default function RiderAutocomplete({
         </div>
       )}
 
-      {open && !loading && value.trim().length >= 2 && results.length === 0 && (
-        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 p-3 text-sm text-white/60">
-          Aucun coureur trouvé.
-        </div>
-      )}
+      {open &&
+  hasTyped &&
+  !loading &&
+  !selectedId &&
+  value.trim().length >= 2 &&
+  results.length === 0 && (
+    <div className="absolute z-30 mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 p-3 text-sm text-white/60">
+      Aucun coureur trouvé.
+    </div>
+  )}
     </div>
   )
 }
