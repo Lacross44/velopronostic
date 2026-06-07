@@ -12,6 +12,13 @@ type Race = {
   race_date: string | null
   pronostic_deadline: string | null
   logo_url?: string | null
+  race_group_id?: string | null
+  stage_number?: number | null
+  is_stage?: boolean | null
+  race_groups?: {
+    name: string
+    year: number | null
+  } | null
 }
 
 type Rider = {
@@ -150,7 +157,13 @@ const [groupCategory, setGroupCategory] = useState("")
   async function loadRaces() {
     const { data, error } = await supabase
       .from("races")
-      .select("*")
+      .select(`
+      *,
+      race_groups (
+        name,
+        year
+      )
+    `)
       .order("race_date", { ascending: false })
 
     if (error) {
@@ -618,6 +631,13 @@ async function updateRace() {
                             ? new Date(race.pronostic_deadline).toLocaleString()
                             : "—"}
                         </div>
+                        {race.race_groups && (
+  <div className="text-xs text-indigo-200 mt-1">
+    🗂 {race.race_groups.name}
+    {race.race_groups.year ? ` ${race.race_groups.year}` : ""}
+    {race.stage_number ? ` • Étape ${race.stage_number}` : ""}
+  </div>
+)}
                         <button
                         onClick={() => startEditRace(race)}
                         className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
