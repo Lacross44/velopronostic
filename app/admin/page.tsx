@@ -36,6 +36,9 @@ type RaceGroup = {
   slug?: string | null
   year?: number | null
   category?: string | null
+    races?: {
+    count: number
+  }[]
 }
 
 export default function AdminPage() {
@@ -177,7 +180,10 @@ const [groupCategory, setGroupCategory] = useState("")
   async function loadRaceGroups() {
   const { data, error } = await supabase
     .from("race_groups")
-    .select("*")
+    .select(`
+  *,
+  races(count)
+`)
     .order("year", { ascending: false })
     .order("name", { ascending: true })
 
@@ -929,8 +935,12 @@ async function updateRace() {
               </div>
               <div className="text-xs text-white/50">{group.slug || "—"}</div>
             </div>
+            <div className="text-sm text-indigo-200">
+  🚴 {group.races?.[0]?.count ?? 0} étape(s)
+</div>
           </div>
         ))}
+        
 
         {raceGroups.length === 0 && (
           <div className="text-white/60">Aucun groupe de courses pour le moment.</div>
