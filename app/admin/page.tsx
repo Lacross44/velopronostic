@@ -40,6 +40,8 @@ export default function AdminPage() {
 
   const [races, setRaces] = useState<Race[]>([])
   const [riders, setRiders] = useState<Rider[]>([])
+  const [selectedGroupId, setSelectedGroupId] = useState("")
+  const [stageNumber, setStageNumber] = useState("")
 
   const [firstResultRiderId, setFirstResultRiderId] = useState<string | null>(null)
   const [secondResultRiderId, setSecondResultRiderId] = useState<string | null>(null)
@@ -248,6 +250,9 @@ async function createRaceGroup() {
       race_date: raceDate,
       pronostic_deadline: deadline,
       logo_url: logoUrl,
+      race_group_id: selectedGroupId || null,
+      stage_number: stageNumber ? Number(stageNumber) : null,
+      is_stage: !!selectedGroupId,
     })
 
     if (error) {
@@ -261,6 +266,8 @@ async function createRaceGroup() {
     setRaceDate("")
     setDeadline("")
     setLogoFile(null)
+    setSelectedGroupId("")
+    setStageNumber("")
     await loadRaces()
     await loadStats()
   }
@@ -514,6 +521,27 @@ async function updateRace() {
           <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <h2 className="text-2xl font-bold mb-4">Créer une course</h2>
+
+              <select
+  value={selectedGroupId}
+  onChange={(e) => setSelectedGroupId(e.target.value)}
+  className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white"
+>
+  <option value="" className="text-black">Course seule</option>
+  {raceGroups.map((group) => (
+    <option key={group.id} value={group.id} className="text-black">
+      {group.name} {group.year ? `(${group.year})` : ""}
+    </option>
+  ))}
+</select>
+
+<input
+  type="number"
+  value={stageNumber}
+  onChange={(e) => setStageNumber(e.target.value)}
+  placeholder="Numéro d’étape"
+  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+/>
 
               <div className="space-y-4">
                 <input
