@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabaseClient"
+import RiderAutocomplete from "@/components/RiderAutocomplete"
 
 type Race = {
   id: string
@@ -39,6 +40,11 @@ export default function AdminPage() {
 
   const [races, setRaces] = useState<Race[]>([])
   const [riders, setRiders] = useState<Rider[]>([])
+
+  const [firstResultRiderId, setFirstResultRiderId] = useState<string | null>(null)
+  const [secondResultRiderId, setSecondResultRiderId] = useState<string | null>(null)
+  const [thirdResultRiderId, setThirdResultRiderId] = useState<string | null>(null)
+  const [firstFrenchResultRiderId, setFirstFrenchResultRiderId] = useState<string | null>(null)
 
   const [stats, setStats] = useState({
     races: 0,
@@ -336,17 +342,21 @@ async function updateRace() {
     }
 
     const { error: upsertError } = await supabase
-      .from("results")
-      .upsert(
-        {
-          race_id: selectedRace.id,
-          first_place: first,
-          second_place: second,
-          third_place: third,
-          first_french: firstFrench,
-        },
-        { onConflict: "race_id" }
-      )
+  .from("results")
+  .upsert(
+    {
+      race_id: selectedRace.id,
+      first_place: first,
+      second_place: second,
+      third_place: third,
+      first_french: firstFrench,
+      first_place_rider_id: firstResultRiderId,
+      second_place_rider_id: secondResultRiderId,
+      third_place_rider_id: thirdResultRiderId,
+      first_french_rider_id: firstFrenchResultRiderId,
+    },
+    { onConflict: "race_id" }
+  )
 
     if (upsertError) {
       console.error(upsertError)
@@ -371,6 +381,12 @@ async function updateRace() {
     setSecond("")
     setThird("")
     setFirstFrench("")
+
+    // Reset IDs autocomplete
+    setFirstResultRiderId(null)
+    setSecondResultRiderId(null)
+    setThirdResultRiderId(null)
+    setFirstFrenchResultRiderId(null)
 
     await loadStats()
   }
@@ -656,30 +672,44 @@ async function updateRace() {
                   ))}
                 </select>
 
-                <input
-                  value={first}
-                  onChange={(e) => setFirst(e.target.value)}
-                  placeholder="1er"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                />
-                <input
-                  value={second}
-                  onChange={(e) => setSecond(e.target.value)}
-                  placeholder="2e"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                />
-                <input
-                  value={third}
-                  onChange={(e) => setThird(e.target.value)}
-                  placeholder="3e"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                />
-                <input
-                  value={firstFrench}
-                  onChange={(e) => setFirstFrench(e.target.value)}
-                  placeholder="1er Français"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                />
+                <RiderAutocomplete
+  label="🥇 1er"
+  placeholder="Chercher le vainqueur"
+  value={first}
+  selectedId={firstResultRiderId}
+  onValueChange={setFirst}
+  onSelect={(rider) => setFirstResultRiderId(rider?.id || null)}
+  excludedIds={[secondResultRiderId || "", thirdResultRiderId || ""].filter(Boolean)}
+/>
+
+<RiderAutocomplete
+  label="🥈 2e"
+  placeholder="Chercher le 2e"
+  value={second}
+  selectedId={secondResultRiderId}
+  onValueChange={setSecond}
+  onSelect={(rider) => setSecondResultRiderId(rider?.id || null)}
+  excludedIds={[firstResultRiderId || "", thirdResultRiderId || ""].filter(Boolean)}
+/>
+
+<RiderAutocomplete
+  label="🥉 3e"
+  placeholder="Chercher le 3e"
+  value={third}
+  selectedId={thirdResultRiderId}
+  onValueChange={setThird}
+  onSelect={(rider) => setThirdResultRiderId(rider?.id || null)}
+  excludedIds={[firstResultRiderId || "", secondResultRiderId || ""].filter(Boolean)}
+/>
+
+<RiderAutocomplete
+  label="🇫🇷 1er Français"
+  placeholder="Chercher le 1er Français"
+  value={firstFrench}
+  selectedId={firstFrenchResultRiderId}
+  onValueChange={setFirstFrench}
+  onSelect={(rider) => setFirstFrenchResultRiderId(rider?.id || null)}
+/>
 
                 <button
                   onClick={saveResults}
