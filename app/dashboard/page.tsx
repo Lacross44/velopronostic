@@ -13,6 +13,7 @@ type League = {
   launched_at?: string | null
   owner_id?: string | null
   code?: string | null
+  race_group_id?: string | null
 }
 
 type Race = {
@@ -311,20 +312,33 @@ async function loadLeagueRaces(leagueId: string) {
 }
 
   async function loadAllRaces() {
-const { data, error } = await supabase
-  .from("races")
-  .select(`
-    *,
-    race_groups (
-      name,
-      year
-    )
-  `)
-  .gt("pronostic_deadline", new Date().toISOString())
-  .order("race_date", { ascending: true })
-    if (error) console.error(error)
-    setAllRaces((data || []) as any)
+  let query = supabase
+    .from("races")
+    .select(`
+      *,
+      race_groups (
+        name,
+        year
+      )
+    `)
+    .gt("pronostic_deadline", new Date().toISOString())
+    .order("race_date", { ascending: true })
+
+  // Si la ligue est liée à un groupe, on affiche seulement les courses de ce groupe
+  if (selectedLeague?.race_group_id) {
+    query = query.eq("race_group_id", selectedLeague.race_group_id)
   }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error(error)
+    alert("Erreur chargement des courses")
+    return
+  }
+
+  setAllRaces(data || [])
+}
 
   // ✅ RPC recommended
   async function loadGeneralRanking(leagueId: string) {
@@ -981,7 +995,7 @@ async function createLeague() {
 
     {selectedLeagueGroupId && (
       <div className="text-xs text-indigo-300">
-        Lancez la ligue pour ajouter ajouter toutes les étapes. Sinon gérer les courses pour sélectionner celles que vous souhaitez
+        Lancez la ligue pour ajouter toutes les étapes. Sinon "Gérer les courses" pour sélectionner celles que vous souhaitez
       </div>
     )}
 
