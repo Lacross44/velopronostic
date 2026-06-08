@@ -38,6 +38,11 @@ export default function DashboardPage() {
   const [races, setRaces] = useState<Race[]>([])
   const [showAllRaces, setShowAllRaces] = useState(true)
 
+  const [selectedLeagueGroupId, setSelectedLeagueGroupId] = useState("")
+  const [raceGroups, setRaceGroups] = useState<any[]>([])
+  const [showCreateLeague, setShowCreateLeague] = useState(false)
+  const [newLeagueName, setNewLeagueName] = useState("")
+
   const [leaderboard, setLeaderboard] = useState<any[]>([])
   const [raceRanking, setRaceRanking] = useState<any[]>([])
   const [raceRankingRaceId, setRaceRankingRaceId] = useState<string | null>(null)
@@ -204,6 +209,7 @@ if (profileData?.role === "admin") {
         .filter(Boolean)
       setLeagues(userLeagues)
     }
+     await loadRaceGroups()
 
     setLoading(false)
   }
@@ -440,50 +446,77 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
   setRaceRankingRaceId(raceId) // (si tu ajoutes ce state)
 }
 
-  async function createLeague() {
-    const name = prompt("Nom de la ligue ?")
-    if (!name) return
+  async function loadRaceGroups() {
+  const { data, error } = await supabase
+    .from("race_groups")
+    .select("id, name, year")
+    .order("year", { ascending: false })
+    .order("name", { ascending: true })
 
-    const { data: userRes } = await supabase.auth.getUser()
-    if (!userRes.user) {
-      alert("Tu dois être connecté")
-      return
-    }
-
-    const ownerId = userRes.user.id
-
-    const { data: league, error } = await supabase
-      .from("leagues")
-      .insert({ name, owner_id: ownerId, status: "draft" })
-      .select()
-      .single()
-
-    if (error) {
-      console.error(error)
-      alert(error.message)
-      return
-    }
-
-    const { error: memErr } = await supabase.from("league_members").insert({
-      league_id: league.id,
-      user_id: ownerId,
-      role: "owner",
-    })
-
-    if (memErr) {
-      console.error(memErr)
-      alert(memErr.message)
-      return
-    }
-
-    alert("Ligue créée ✅")
-    await loadData()
-
-    // Auto-select and open manage
-    await selectLeague(league)
-    await loadAllRaces()
-    setManageMode(true)
+  if (error) {
+    console.error(error)
+    return
   }
+
+  setRaceGroups(data || [])
+}
+
+async function createLeague() {
+  const name = newLeagueName.trim()
+  if (!name) {
+    alert("Nom de ligue obligatoire")
+    return
+  }
+
+  const { data: userRes } = await supabase.auth.getUser()
+  if (!userRes.user) {
+    alert("Tu dois être connecté")
+    return
+  }
+
+  const ownerId = userRes.user.id
+
+  const { data: league, error } = await supabase
+    .from("leagues")
+    .insert({
+      name,
+      owner_id: ownerId,
+      status: "draft",
+      race_group_id: selectedLeagueGroupId || null,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error(error)
+    alert(error.message)
+    return
+  }
+
+  const { error: memErr } = await supabase.from("league_members").insert({
+    league_id: league.id,
+    user_id: ownerId,
+    role: "owner",
+  })
+
+  if (memErr) {
+    console.error(memErr)
+    alert(memErr.message)
+    return
+  }
+
+  alert("Ligue créée ✅")
+
+  setNewLeagueName("")
+  setSelectedLeagueGroupId("")
+  setShowCreateLeague(false)
+
+  await loadData()
+
+  await selectLeague(league)
+  await loadAllRaces()
+  setManageMode(true)
+}
 
   async function joinLeague() {
     const code = prompt("Code de la ligue ?")
@@ -862,11 +895,63 @@ async function loadRaceRanking(leagueId: string, raceId: string) {
         {/* League actions */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <button
-            onClick={createLeague}
-            className="flex-1 rounded-2xl px-4 py-3 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-300/20 transition font-semibold"
-          >
-            ✨ Créer une ligue (max : 10 joueurs)
-          </button>
+  onClick={() => setShowCreateLeague((v) => !v)}
+  className="px-4 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
+>
+  ➕ Créer une ligue
+</button>
+{showCreateLeague && (
+  <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+    <input
+      value={newLeagueName}
+      onChange={(e) => setNewLeagueName(e.target.value)}
+      placeholder="Nom de la ligue"
+      className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+    />
+
+    <select
+      value={selectedLeagueGroupId}
+      onChange={(e) => setSelectedLeagueGroupId(e.target.value)}
+      className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white"
+    >
+      <option value="" className="text-black">
+        🎯 Ligue classique — courses au choix
+      </option>
+
+      {raceGroups.map((group) => (
+        <option key={group.id} value={group.id} className="text-black">
+          🏔 {group.name} {group.year ? `(${group.year})` : ""}
+        </option>
+      ))}
+    </select>
+
+    {selectedLeagueGroupId && (
+      <div className="text-xs text-indigo-300">
+        Les étapes du groupe seront ajoutées automatiquement lors de l’activation de la ligue.
+      </div>
+    )}
+
+    <div className="flex gap-3">
+      <button
+        onClick={createLeague}
+        className="px-4 py-2 rounded-xl bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-300/20 transition font-semibold"
+      >
+        Valider la création
+      </button>
+
+      <button
+        onClick={() => {
+          setShowCreateLeague(false)
+          setNewLeagueName("")
+          setSelectedLeagueGroupId("")
+        }}
+        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+      >
+        Annuler
+      </button>
+    </div>
+  </div>
+)}
           <button
             onClick={joinLeague}
             className="flex-1 rounded-2xl px-4 py-3 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-300/20 transition font-semibold"
