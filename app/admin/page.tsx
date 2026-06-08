@@ -70,6 +70,7 @@ export default function AdminPage() {
   const [raceDate, setRaceDate] = useState("")
   const [deadline, setDeadline] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [raceType, setRaceType] = useState("road")
 
   // Modif courses
   const [editingRaceId, setEditingRaceId] = useState("")
@@ -272,6 +273,7 @@ async function createRaceGroup() {
       race_group_id: selectedGroupId || null,
       stage_number: stageNumber ? Number(stageNumber) : null,
       is_stage: !!selectedGroupId,
+      race_type: raceType,
     })
 
     if (error) {
@@ -569,6 +571,15 @@ async function updateRace() {
                   placeholder="Nom de la course"
                   className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
                 />
+                <select
+  value={raceType}
+  onChange={(e) => setRaceType(e.target.value)}
+  className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
+>
+  <option value="road">🚴 Étape classique</option>
+  <option value="itt">⏱ Contre-la-montre individuel</option>
+  <option value="ttt">👥 Contre-la-montre par équipes</option>
+</select>
 
                 <div>
                   <label className="block text-sm text-white/70 mb-2">Date de course</label>
