@@ -311,7 +311,17 @@ async function loadLeagueRaces(leagueId: string) {
 }
 
   async function loadAllRaces() {
-    const { data, error } = await supabase.from("races").select("*").order("race_date", { ascending: true })
+const { data, error } = await supabase
+  .from("races")
+  .select(`
+    *,
+    race_groups (
+      name,
+      year
+    )
+  `)
+  .gt("pronostic_deadline", new Date().toISOString())
+  .order("race_date", { ascending: true })
     if (error) console.error(error)
     setAllRaces((data || []) as any)
   }
@@ -551,6 +561,8 @@ async function createLeague() {
   async function launchLeague() {
     if (!selectedLeague) return
 
+    await addGroupRacesToLeague(selectedLeague)
+
     const { data: lr, error: lrErr } = await supabase
       .from("league_races")
       .select("race_id")
@@ -588,6 +600,41 @@ async function createLeague() {
     alert("Ligue lancée ✅")
     await loadData()
   }
+
+  async function addGroupRacesToLeague(league: any) {
+  if (!league?.race_group_id) return
+
+  const nowIso = new Date().toISOString()
+
+  const { data: groupRaces, error } = await supabase
+    .from("races")
+    .select("id")
+    .eq("race_group_id", league.race_group_id)
+    .gt("pronostic_deadline", nowIso)
+    .order("stage_number", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    alert("Erreur ajout des étapes du groupe")
+    return
+  }
+
+  if (!groupRaces || groupRaces.length === 0) return
+
+  const rows = groupRaces.map((race: any) => ({
+    league_id: league.id,
+    race_id: race.id,
+  }))
+
+  const { error: insertError } = await supabase
+    .from("league_races")
+    .upsert(rows, { onConflict: "league_id,race_id" })
+
+  if (insertError) {
+    console.error(insertError)
+    alert("Erreur ajout des courses à la ligue")
+  }
+}
 
   // ✅ Prevent changes if league is active
   async function toggleRace(raceId: string, active: boolean) {
