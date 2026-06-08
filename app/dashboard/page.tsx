@@ -919,7 +919,7 @@ async function createLeague() {
       </option>
 
       {raceGroups.map((group) => (
-        <option key={group.id} value={group.id} className="text-black">
+        <option key={group.id} value={group.id}>
           🏔 {group.name} {group.year ? `(${group.year})` : ""}
         </option>
       ))}
