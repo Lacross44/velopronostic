@@ -195,7 +195,8 @@ if (profileData?.role === "admin") {
           status,
           launched_at,
           owner_id,
-          code
+          code,
+          race_group_id
         )
       `
       )
