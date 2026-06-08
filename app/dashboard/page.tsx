@@ -981,7 +981,7 @@ async function createLeague() {
 
     {selectedLeagueGroupId && (
       <div className="text-xs text-indigo-300">
-        Les étapes du groupe seront ajoutées automatiquement lors de l’activation de la ligue.
+        Lancez la ligue pour ajouter ajouter toutes les étapes. Sinon gérer les courses pour sélectionner celles que vous souhaitez
       </div>
     )}
 
