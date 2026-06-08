@@ -912,17 +912,24 @@ async function createLeague() {
     <select
       value={selectedLeagueGroupId}
       onChange={(e) => setSelectedLeagueGroupId(e.target.value)}
-      className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white"
+      className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
     >
-      <option value="" className="text-black">
-        🎯 Ligue classique — courses au choix
-      </option>
+     <option
+  value=""
+  style={{ backgroundColor: "#111827", color: "#ffffff" }}
+>
+  🎯 Ligue classique — courses au choix
+</option>
 
-      {raceGroups.map((group) => (
-        <option key={group.id} value={group.id}>
-          🏔 {group.name} {group.year ? `(${group.year})` : ""}
-        </option>
-      ))}
+{raceGroups.map((group) => (
+  <option
+    key={group.id}
+    value={group.id}
+    style={{ backgroundColor: "#111827", color: "#ffffff" }}
+  >
+    🏔 {group.name} {group.year ? `(${group.year})` : ""}
+  </option>
+))}
     </select>
 
     {selectedLeagueGroupId && (
