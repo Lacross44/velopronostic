@@ -1192,6 +1192,23 @@ async function createLeague() {
     />
   </div>
 </div>
+{selectedLeague?.race_group_id && (
+  <div className="rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-4 mb-4">
+    <div className="text-lg font-bold">
+      🏆 Pronostic classement général final
+    </div>
+
+    <div className="text-sm text-white/70 mt-2">
+      Pronostique le podium final et le premier Français avant le départ de la première étape.
+    </div>
+
+    <button
+      className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
+    >
+      Faire mon pronostic
+    </button>
+  </div>
+)}
                         {/* General ranking */}
 <div className="mt-8">
   <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
