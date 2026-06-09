@@ -1244,6 +1244,7 @@ async function saveGcPrediction() {
   </div>
 </div>
 {selectedLeague?.race_group_id && (
+  <div className="mt-6">
   <div className="rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-4 mb-4">
     <div className="text-lg font-bold">
       🏆 Pronostic classement général final
@@ -1259,6 +1260,7 @@ async function saveGcPrediction() {
 >
   Faire mon pronostic
 </button>
+  </div>
   </div>
 )}
                         {/* General ranking */}
