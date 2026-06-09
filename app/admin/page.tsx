@@ -96,7 +96,7 @@ export default function AdminPage() {
   const [riderNationality, setRiderNationality] = useState("")
   const [riderTeam, setRiderTeam] = useState("")
   const [riderSearch, setRiderSearch] = useState("")
-  const [tab, setTab] = useState<"overview" | "races" | "results" | "riders" | "groups">("overview")
+  const [tab, setTab] = useState<"overview" | "races" | "results" | "riders" | "groups" | "gcResults">("overview")
 
 const [raceGroups, setRaceGroups] = useState<RaceGroup[]>([])
 
@@ -104,6 +104,18 @@ const [groupName, setGroupName] = useState("")
 const [groupSlug, setGroupSlug] = useState("")
 const [groupYear, setGroupYear] = useState("")
 const [groupCategory, setGroupCategory] = useState("")
+
+const [selectedGcGroupId, setSelectedGcGroupId] = useState("")
+
+const [gcResFirst, setGcResFirst] = useState("")
+const [gcResSecond, setGcResSecond] = useState("")
+const [gcResThird, setGcResThird] = useState("")
+const [gcResFirstFrench, setGcResFirstFrench] = useState("")
+
+const [gcResFirstId, setGcResFirstId] = useState<string | null>(null)
+const [gcResSecondId, setGcResSecondId] = useState<string | null>(null)
+const [gcResThirdId, setGcResThirdId] = useState<string | null>(null)
+const [gcResFirstFrenchId, setGcResFirstFrenchId] = useState<string | null>(null)
 
   const selectedRace = useMemo(
     () => races.find((r) => r.id === selectedRaceId) || null,
@@ -435,6 +447,63 @@ async function updateRace() {
     await loadStats()
   }
 
+  async function saveGroupResults() {
+  if (!selectedGcGroupId) {
+    alert("Choisis un groupe de courses.")
+    return
+  }
+
+  if (!gcResFirst || !gcResSecond || !gcResThird || !gcResFirstFrench) {
+    alert("Merci de saisir le podium final + le premier Français.")
+    return
+  }
+
+  const { error: upsertError } = await supabase
+    .from("group_results")
+    .upsert(
+      {
+        race_group_id: selectedGcGroupId,
+
+        gc_first: gcResFirst,
+        gc_second: gcResSecond,
+        gc_third: gcResThird,
+        gc_first_french: gcResFirstFrench,
+
+        gc_first_rider_id: gcResFirstId,
+        gc_second_rider_id: gcResSecondId,
+        gc_third_rider_id: gcResThirdId,
+        gc_first_french_rider_id: gcResFirstFrenchId,
+      },
+      { onConflict: "race_group_id" }
+    )
+
+  if (upsertError) {
+    alert("Erreur enregistrement résultat CG : " + upsertError.message)
+    return
+  }
+
+  const { error: rpcError } = await supabase.rpc("recalculate_group_points", {
+    p_race_group_id: selectedGcGroupId,
+  })
+
+  if (rpcError) {
+    alert("Résultat CG enregistré, mais erreur recalcul : " + rpcError.message)
+    return
+  }
+
+  alert("Résultat CG final enregistré + points recalculés ✅")
+
+  setSelectedGcGroupId("")
+  setGcResFirst("")
+  setGcResSecond("")
+  setGcResThird("")
+  setGcResFirstFrench("")
+  setGcResFirstId(null)
+  setGcResSecondId(null)
+  setGcResThirdId(null)
+  setGcResFirstFrenchId(null)
+}
+
   async function createRider() {
     if (!riderName.trim()) {
       alert("Nom du coureur obligatoire")
@@ -528,6 +597,7 @@ async function updateRace() {
   ["results", "✅ Résultats"],
   ["riders", "🚴 Coureurs"],
   ["groups", "🗂 Groupes de courses"],
+  ["gcResults", "🏆 Résultat CG final"],
 ].map(([key, label]) => (
   <button
     key={key}
@@ -1010,6 +1080,93 @@ async function updateRace() {
         {raceGroups.length === 0 && (
           <div className="text-white/60">Aucun groupe de courses pour le moment.</div>
         )}
+      </div>
+    </div>
+  </div>
+)}
+{tab === "gcResults" && (
+  <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 className="text-2xl font-bold mb-4">🏆 Résultat classement général final</h2>
+
+      <div className="space-y-4">
+        <select
+          value={selectedGcGroupId}
+          onChange={(e) => setSelectedGcGroupId(e.target.value)}
+          className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
+        >
+          <option value="" style={{ backgroundColor: "#111827", color: "#ffffff" }}>
+            Choisir un groupe de courses
+          </option>
+
+          {raceGroups.map((group) => (
+            <option
+              key={group.id}
+              value={group.id}
+              style={{ backgroundColor: "#111827", color: "#ffffff" }}
+            >
+              {group.name} {group.year ? `(${group.year})` : ""}
+            </option>
+          ))}
+        </select>
+
+        <RiderAutocomplete
+          label="🥇 Vainqueur final"
+          placeholder="Chercher le vainqueur final"
+          value={gcResFirst}
+          selectedId={gcResFirstId}
+          onValueChange={setGcResFirst}
+          onSelect={(rider) => setGcResFirstId(rider?.id || null)}
+          excludedIds={[gcResSecondId || "", gcResThirdId || ""].filter(Boolean)}
+        />
+
+        <RiderAutocomplete
+          label="🥈 Deuxième final"
+          placeholder="Chercher le deuxième"
+          value={gcResSecond}
+          selectedId={gcResSecondId}
+          onValueChange={setGcResSecond}
+          onSelect={(rider) => setGcResSecondId(rider?.id || null)}
+          excludedIds={[gcResFirstId || "", gcResThirdId || ""].filter(Boolean)}
+        />
+
+        <RiderAutocomplete
+          label="🥉 Troisième final"
+          placeholder="Chercher le troisième"
+          value={gcResThird}
+          selectedId={gcResThirdId}
+          onValueChange={setGcResThird}
+          onSelect={(rider) => setGcResThirdId(rider?.id || null)}
+          excludedIds={[gcResFirstId || "", gcResSecondId || ""].filter(Boolean)}
+        />
+
+        <RiderAutocomplete
+          label="🇫🇷 Premier Français final"
+          placeholder="Chercher le premier Français"
+          value={gcResFirstFrench}
+          selectedId={gcResFirstFrenchId}
+          onValueChange={setGcResFirstFrench}
+          onSelect={(rider) => setGcResFirstFrenchId(rider?.id || null)}
+        />
+
+        <button
+          onClick={saveGroupResults}
+          className="w-full px-4 py-3 rounded-2xl bg-yellow-500/25 hover:bg-yellow-500/35 border border-yellow-300/20 transition font-semibold"
+        >
+          Enregistrer le résultat CG final
+        </button>
+      </div>
+    </div>
+
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 className="text-2xl font-bold mb-4">Barème CG final</h2>
+
+      <div className="space-y-3 text-white/75">
+        <p>🥇 Vainqueur exact : 15 pts</p>
+        <p>🥈 Deuxième exact : 10 pts</p>
+        <p>🥉 Troisième exact : 8 pts</p>
+        <p>🔁 Coureur dans le podium mais mal placé : 3 pts</p>
+        <p>🇫🇷 Premier Français exact : 5 pts</p>
       </div>
     </div>
   </div>
