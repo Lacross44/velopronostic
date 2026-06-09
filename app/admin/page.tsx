@@ -79,6 +79,9 @@ export default function AdminPage() {
   const [editRaceDate, setEditRaceDate] = useState("")
   const [editDeadline, setEditDeadline] = useState("")
   const [editRaceType, setEditRaceType] = useState("road")
+  const [editSelectedGroupId, setEditSelectedGroupId] = useState("")
+  const [editStageNumber, setEditStageNumber] = useState("")
+
 
   // Résultats
   const [selectedRaceId, setSelectedRaceId] = useState("")
@@ -315,6 +318,8 @@ function startEditRace(race: any) {
   setEditName(race.name || "")
   setEditRaceDate(formatForDateTimeLocal(race.race_date))
   setEditDeadline(formatForDateTimeLocal(race.pronostic_deadline))
+  setEditSelectedGroupId(race.race_group_id || "")
+  setEditStageNumber(race.stage_number ? String(race.stage_number) : "")
   setEditRaceType(race.race_type || "road")
 }
 
@@ -336,6 +341,9 @@ async function updateRace() {
     name: editName.trim(),
     race_date: editRaceDate ? new Date(editRaceDate).toISOString() : null,
     pronostic_deadline: editDeadline ? new Date(editDeadline).toISOString() : null,
+    race_group_id: editSelectedGroupId || null,
+    stage_number: editStageNumber ? Number(editStageNumber) : null,
+    is_stage: !!editSelectedGroupId,
     race_type: editRaceType,
   }
 
@@ -559,6 +567,38 @@ async function updateRace() {
         placeholder="Nom"
         className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
       />
+      <select
+  value={editSelectedGroupId}
+  onChange={(e) => setEditSelectedGroupId(e.target.value)}
+  className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
+>
+  <option value="">Course seule</option>
+  {raceGroups.map((group) => (
+    <option key={group.id} value={group.id}>
+      {group.name} {group.year ? `(${group.year})` : ""}
+    </option>
+  ))}
+</select>
+
+{editSelectedGroupId && (
+  <input
+    type="number"
+    value={editStageNumber}
+    onChange={(e) => setEditStageNumber(e.target.value)}
+    placeholder="Numéro d’étape"
+    className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+  />
+)}
+
+<select
+  value={editRaceType}
+  onChange={(e) => setEditRaceType(e.target.value)}
+  className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
+>
+  <option value="road">🚴 Étape classique</option>
+  <option value="itt">⏱ Contre-la-montre individuel</option>
+  <option value="ttt">👥 Contre-la-montre par équipes</option>
+</select>
 
       <input
         type="datetime-local"
