@@ -63,6 +63,8 @@ const [gcSecondId, setGcSecondId] = useState<string | null>(null)
 const [gcThirdId, setGcThirdId] = useState<string | null>(null)
 const [gcFirstFrenchId, setGcFirstFrenchId] = useState<string | null>(null)
 
+const [myGcPrediction, setMyGcPrediction] = useState<any>(null)
+
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
   const [allRaces, setAllRaces] = useState<Race[]>([])
@@ -286,6 +288,7 @@ if (profileData?.role === "admin") {
     await loadLeagueRaces(league.id)
     await loadGeneralRanking(league.id)
     await loadLeagueMembers(league.id)
+    await loadMyGcPrediction(league)
 
     const { data: roleData } = await supabase
       .from("league_members")
@@ -756,9 +759,45 @@ async function saveGcPrediction() {
     alert("Erreur enregistrement : " + error.message)
     return
   }
+  await loadMyGcPrediction(selectedLeague)
 
   alert("Pronostic final enregistré ✅")
   setGcOpen(false)
+}
+
+async function loadMyGcPrediction(league: any) {
+  if (!user || !league?.race_group_id) {
+    setMyGcPrediction(null)
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("group_predictions")
+    .select("*")
+    .eq("league_id", league.id)
+    .eq("race_group_id", league.race_group_id)
+    .eq("user_id", user.id)
+    .maybeSingle()
+
+  if (error) {
+    console.error(error)
+    setMyGcPrediction(null)
+    return
+  }
+
+  setMyGcPrediction(data || null)
+
+  if (data) {
+    setGcFirst(data.gc_first || "")
+    setGcSecond(data.gc_second || "")
+    setGcThird(data.gc_third || "")
+    setGcFirstFrench(data.gc_first_french || "")
+
+    setGcFirstId(data.gc_first_rider_id || null)
+    setGcSecondId(data.gc_second_rider_id || null)
+    setGcThirdId(data.gc_third_rider_id || null)
+    setGcFirstFrenchId(data.gc_first_french_rider_id || null)
+  }
 }
 
   async function openProno(race: Race) {
@@ -1244,7 +1283,6 @@ async function saveGcPrediction() {
   </div>
 </div>
 {selectedLeague?.race_group_id && (
-  <div className="mt-6">
   <div className="rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-4 mb-4">
     <div className="text-lg font-bold">
       🏆 Pronostic classement général final
@@ -1254,13 +1292,26 @@ async function saveGcPrediction() {
       Pronostique le podium final et le premier Français avant le départ de la première étape.
     </div>
 
-<button
-  onClick={() => setGcOpen(true)}
-  className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
->
-  Faire mon pronostic
-</button>
-  </div>
+    {myGcPrediction ? (
+      <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white/85">
+        <div className="font-semibold mb-2">Ton podium final :</div>
+        <div>🥇 {myGcPrediction.gc_first || "—"}</div>
+        <div>🥈 {myGcPrediction.gc_second || "—"}</div>
+        <div>🥉 {myGcPrediction.gc_third || "—"}</div>
+        <div>🇫🇷 {myGcPrediction.gc_first_french || "—"}</div>
+      </div>
+    ) : (
+      <div className="mt-4 text-sm text-white/60">
+        Aucun pronostic final enregistré pour le moment.
+      </div>
+    )}
+
+    <button
+      onClick={() => setGcOpen(true)}
+      className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
+    >
+      {myGcPrediction ? "Modifier mon podium" : "Faire mon pronostic"}
+    </button>
   </div>
 )}
                         {/* General ranking */}
