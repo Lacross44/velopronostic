@@ -309,6 +309,8 @@ function formatForDateTimeLocal(dateString?: string | null) {
 }
 
 function startEditRace(race: any) {
+
+  console.log("START EDIT RACE", race)
   setEditingRaceId(race.id)
   setEditName(race.name || "")
   setEditRaceDate(formatForDateTimeLocal(race.race_date))
