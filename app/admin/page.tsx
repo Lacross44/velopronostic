@@ -371,6 +371,8 @@ async function updateRace() {
   setEditName("")
   setEditRaceDate("")
   setEditDeadline("")
+  setEditSelectedGroupId("")
+  setEditStageNumber("")
   setEditRaceType("road")
   await loadRaces()
 }
