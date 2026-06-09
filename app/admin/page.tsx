@@ -336,9 +336,8 @@ async function updateRace() {
     name: editName.trim(),
     race_date: editRaceDate ? new Date(editRaceDate).toISOString() : null,
     pronostic_deadline: editDeadline ? new Date(editDeadline).toISOString() : null,
+    race_type: editRaceType,
   }
-
-  console.log("UPDATE RACE PAYLOAD", payload)
 
   const { data, error } = await supabase
     .from("races")
@@ -364,7 +363,7 @@ async function updateRace() {
   setEditName("")
   setEditRaceDate("")
   setEditDeadline("")
-
+  setEditRaceType("road")
   await loadRaces()
 }
 
@@ -675,6 +674,8 @@ async function updateRace() {
                     </div>
                   </div>
                 ))}
+                                      
+                                      
                                       {editingRaceId && (
   <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mt-6">
     <h2 className="text-2xl font-bold mb-4">Modifier la course</h2>
