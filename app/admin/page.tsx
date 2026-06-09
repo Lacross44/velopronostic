@@ -19,6 +19,7 @@ type Race = {
     name: string
     year: number | null
   } | null
+  race_type?: "road" | "itt" | "ttt" | string | null
 }
 
 type Rider = {
@@ -77,6 +78,7 @@ export default function AdminPage() {
   const [editName, setEditName] = useState("")
   const [editRaceDate, setEditRaceDate] = useState("")
   const [editDeadline, setEditDeadline] = useState("")
+  const [editRaceType, setEditRaceType] = useState("road")
 
   // Résultats
   const [selectedRaceId, setSelectedRaceId] = useState("")
@@ -289,6 +291,7 @@ async function createRaceGroup() {
     setLogoFile(null)
     setSelectedGroupId("")
     setStageNumber("")
+    setRaceType("road")
     await loadRaces()
     await loadStats()
   }
@@ -310,6 +313,7 @@ function startEditRace(race: any) {
   setEditName(race.name || "")
   setEditRaceDate(formatForDateTimeLocal(race.race_date))
   setEditDeadline(formatForDateTimeLocal(race.pronostic_deadline))
+  setEditRaceType(race.race_type || "road")
 }
 
 async function updateRace() {
@@ -318,6 +322,7 @@ async function updateRace() {
     editName,
     editRaceDate,
     editDeadline,
+    editRaceType,
   })
 
   if (!editingRaceId) {
@@ -638,6 +643,9 @@ async function updateRace() {
                         />
                       )}
                       <div className="min-w-0">
+                      <span className="mr-2">
+  {race.race_type === "itt" ? "⏱" : race.race_type === "ttt" ? "👥" : "🚴"}
+</span>
                         <div className="font-bold truncate">{race.name}</div>
                         <div className="text-sm text-white/60">
                           {race.race_date ? new Date(race.race_date).toLocaleString() : "—"}
