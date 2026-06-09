@@ -66,6 +66,8 @@ const [gcFirstFrenchId, setGcFirstFrenchId] = useState<string | null>(null)
 const [myGcPrediction, setMyGcPrediction] = useState<any>(null)
 const [gcLocked, setGcLocked] = useState(false)
 const [gcDeadline, setGcDeadline] = useState<string | null>(null)
+const [gcPredictions, setGcPredictions] = useState<any[]>([])
+const [gcPredictionsOpen, setGcPredictionsOpen] = useState(false)
 
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
@@ -467,27 +469,6 @@ async function loadLeagueRaces(leagueId: string) {
   setRaceRankLoading(false)
 }
 
-async function loadRaceRanking(leagueId: string, raceId: string) {
-  console.log("loadRaceRanking", { leagueId, raceId })
-
-  const { data, error } = await supabase.rpc("get_league_race_ranking", {
-    p_league_id: leagueId,
-    p_race_id: raceId,
-  })
-
-  if (error) {
-    console.error("Race ranking error:", error)
-    alert("Erreur classement course: " + error.message)
-    setRaceRanking([])
-    setRaceRankingRaceId(raceId) // (si tu ajoutes ce state)
-    return
-  }
-
-  console.log("Race ranking data", data)
-  setRaceRanking(data || [])
-  setRaceRankingRaceId(raceId) // (si tu ajoutes ce state)
-}
-
   async function loadRaceGroups() {
   const { data, error } = await supabase
     .from("race_groups")
@@ -557,6 +538,7 @@ async function createLeague() {
 
   await selectLeague(league)
   await loadAllRaces()
+  await loadGcPredictions(league)
   setManageMode(true)
 }
 
@@ -803,6 +785,32 @@ async function loadGcDeadline(league: any) {
   }
 
   setGcLocked(new Date(deadline) <= new Date())
+}
+
+async function loadGcPredictions(league: any) {
+  if (!league?.race_group_id) {
+    setGcPredictions([])
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("group_predictions")
+    .select(`
+      *,
+      profiles (
+        username
+      )
+    `)
+    .eq("league_id", league.id)
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    setGcPredictions([])
+    return
+  }
+
+  setGcPredictions(data || [])
 }
 
 async function loadMyGcPrediction(league: any) {
@@ -1363,9 +1371,18 @@ async function loadMyGcPrediction(league: any) {
     {myGcPrediction ? "Modifier mon podium" : "Faire mon pronostic"}
   </button>
 )}
+{gcLocked && (
+  <button
+    onClick={() => setGcPredictionsOpen(true)}
+    className="mt-3 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+  >
+    👀 Voir les podiums de la ligue ({gcPredictions.length})
+  </button>
+)}
   </div>
   </div>
 )}
+
                         {/* General ranking */}
 <div className="mt-8">
   <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
@@ -1922,10 +1939,56 @@ async function loadMyGcPrediction(league: any) {
     </div>
   </div>
 )}
+{gcPredictionsOpen && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-slate-950/95 p-6 flex flex-col max-h-[85vh]">
+      <div className="flex items-start justify-between gap-3 mb-4 border-b border-white/10 pb-3">
+        <div>
+          <h3 className="text-xl font-bold">🏆 Podiums finaux de la ligue</h3>
+          <p className="text-sm text-white/70">
+            Pronostics révélés après le départ de la première étape.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setGcPredictionsOpen(false)}
+          className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20"
+        >
+          Fermer
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto pr-1 space-y-3">
+        {gcPredictions.length === 0 ? (
+          <div className="text-white/60">Aucun pronostic final trouvé.</div>
+        ) : (
+          gcPredictions.map((p: any) => (
+            <div
+              key={p.id}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4"
+            >
+              <div className="font-bold mb-2">
+                {p.profiles?.username || "Utilisateur"}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-white/85">
+                <div>🥇 {p.gc_first || "—"}</div>
+                <div>🥈 {p.gc_second || "—"}</div>
+                <div>🥉 {p.gc_third || "—"}</div>
+                <div>🇫🇷 {p.gc_first_french || "—"}</div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   )
 }
+
 function PriorityRaceCard({
   title,
   race,
