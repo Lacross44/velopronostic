@@ -52,6 +52,17 @@ export default function DashboardPage() {
   const [membersLoading, setMembersLoading] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
 
+  const [gcOpen, setGcOpen] = useState(false)
+const [gcFirst, setGcFirst] = useState("")
+const [gcSecond, setGcSecond] = useState("")
+const [gcThird, setGcThird] = useState("")
+const [gcFirstFrench, setGcFirstFrench] = useState("")
+
+const [gcFirstId, setGcFirstId] = useState<string | null>(null)
+const [gcSecondId, setGcSecondId] = useState<string | null>(null)
+const [gcThirdId, setGcThirdId] = useState<string | null>(null)
+const [gcFirstFrenchId, setGcFirstFrenchId] = useState<string | null>(null)
+
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
   const [allRaces, setAllRaces] = useState<Race[]>([])
@@ -710,6 +721,46 @@ async function createLeague() {
   await loadData()
 }
 
+async function saveGcPrediction() {
+  if (!user || !selectedLeague?.race_group_id) return
+
+  if (!gcFirst || !gcSecond || !gcThird || !gcFirstFrench) {
+    alert("Merci de saisir le podium final + le premier Français.")
+    return
+  }
+
+  const { error } = await supabase
+    .from("group_predictions")
+    .upsert(
+      {
+        race_group_id: selectedLeague.race_group_id,
+        league_id: selectedLeague.id,
+        user_id: user.id,
+
+        gc_first: gcFirst,
+        gc_second: gcSecond,
+        gc_third: gcThird,
+        gc_first_french: gcFirstFrench,
+
+        gc_first_rider_id: gcFirstId,
+        gc_second_rider_id: gcSecondId,
+        gc_third_rider_id: gcThirdId,
+        gc_first_french_rider_id: gcFirstFrenchId,
+      },
+      {
+        onConflict: "race_group_id,league_id,user_id",
+      }
+    )
+
+  if (error) {
+    alert("Erreur enregistrement : " + error.message)
+    return
+  }
+
+  alert("Pronostic final enregistré ✅")
+  setGcOpen(false)
+}
+
   async function openProno(race: Race) {
     if (!selectedLeague) {
       alert("Aucune ligue sélectionnée")
@@ -1202,11 +1253,12 @@ async function createLeague() {
       Pronostique le podium final et le premier Français avant le départ de la première étape.
     </div>
 
-    <button
-      className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
-    >
-      Faire mon pronostic
-    </button>
+<button
+  onClick={() => setGcOpen(true)}
+  className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
+>
+  Faire mon pronostic
+</button>
   </div>
 )}
                         {/* General ranking */}
@@ -1281,6 +1333,7 @@ async function createLeague() {
     </>
   )}
 </div>
+
             {/* Race ranking */}
 {raceRankingRaceId && (
   <div className="mt-8">
@@ -1691,6 +1744,75 @@ async function createLeague() {
             )
           })()
         )}
+      </div>
+    </div>
+  </div>
+)}
+{gcOpen && selectedLeague?.race_group_id && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950/95 p-6 flex flex-col max-h-[85vh]">
+      <div className="flex items-start justify-between gap-3 mb-4 border-b border-white/10 pb-3">
+        <div>
+          <h3 className="text-xl font-bold">🏆 Pronostic classement général final</h3>
+          <p className="text-sm text-white/70">
+            À valider avant le départ de la première étape.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setGcOpen(false)}
+          className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20"
+        >
+          Fermer
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4">
+        <RiderAutocomplete
+          label="🥇 Vainqueur final"
+          placeholder="Chercher le vainqueur final"
+          value={gcFirst}
+          selectedId={gcFirstId}
+          onValueChange={setGcFirst}
+          onSelect={(rider) => setGcFirstId(rider?.id || null)}
+          excludedIds={[gcSecondId || "", gcThirdId || ""].filter(Boolean)}
+        />
+
+        <RiderAutocomplete
+          label="🥈 Deuxième final"
+          placeholder="Chercher le deuxième"
+          value={gcSecond}
+          selectedId={gcSecondId}
+          onValueChange={setGcSecond}
+          onSelect={(rider) => setGcSecondId(rider?.id || null)}
+          excludedIds={[gcFirstId || "", gcThirdId || ""].filter(Boolean)}
+        />
+
+        <RiderAutocomplete
+          label="🥉 Troisième final"
+          placeholder="Chercher le troisième"
+          value={gcThird}
+          selectedId={gcThirdId}
+          onValueChange={setGcThird}
+          onSelect={(rider) => setGcThirdId(rider?.id || null)}
+          excludedIds={[gcFirstId || "", gcSecondId || ""].filter(Boolean)}
+        />
+
+        <RiderAutocomplete
+          label="🇫🇷 Premier Français final"
+          placeholder="Chercher le premier Français"
+          value={gcFirstFrench}
+          selectedId={gcFirstFrenchId}
+          onValueChange={setGcFirstFrench}
+          onSelect={(rider) => setGcFirstFrenchId(rider?.id || null)}
+        />
+
+        <button
+          onClick={saveGcPrediction}
+          className="w-full px-4 py-3 rounded-2xl bg-yellow-500/25 hover:bg-yellow-500/35 border border-yellow-300/20 transition font-semibold"
+        >
+          Enregistrer mon pronostic final
+        </button>
       </div>
     </div>
   </div>
