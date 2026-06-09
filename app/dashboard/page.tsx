@@ -64,6 +64,8 @@ const [gcThirdId, setGcThirdId] = useState<string | null>(null)
 const [gcFirstFrenchId, setGcFirstFrenchId] = useState<string | null>(null)
 
 const [myGcPrediction, setMyGcPrediction] = useState<any>(null)
+const [gcLocked, setGcLocked] = useState(false)
+const [gcDeadline, setGcDeadline] = useState<string | null>(null)
 
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
@@ -289,6 +291,7 @@ if (profileData?.role === "admin") {
     await loadGeneralRanking(league.id)
     await loadLeagueMembers(league.id)
     await loadMyGcPrediction(league)
+    await loadGcDeadline(league)
 
     const { data: roleData } = await supabase
       .from("league_members")
@@ -725,6 +728,10 @@ async function createLeague() {
 }
 
 async function saveGcPrediction() {
+  if (gcLocked) {
+  alert("Le pronostic du classement général final est verrouillé.")
+  return
+}
   if (!user || !selectedLeague?.race_group_id) return
 
   if (!gcFirst || !gcSecond || !gcThird || !gcFirstFrench) {
@@ -763,6 +770,39 @@ async function saveGcPrediction() {
 
   alert("Pronostic final enregistré ✅")
   setGcOpen(false)
+}
+
+async function loadGcDeadline(league: any) {
+  if (!league?.race_group_id) {
+    setGcLocked(false)
+    setGcDeadline(null)
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("races")
+    .select("pronostic_deadline")
+    .eq("race_group_id", league.race_group_id)
+    .order("stage_number", { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.error(error)
+    setGcLocked(false)
+    setGcDeadline(null)
+    return
+  }
+
+  const deadline = data?.pronostic_deadline || null
+  setGcDeadline(deadline)
+
+  if (!deadline) {
+    setGcLocked(false)
+    return
+  }
+
+  setGcLocked(new Date(deadline) <= new Date())
 }
 
 async function loadMyGcPrediction(league: any) {
@@ -1306,13 +1346,23 @@ async function loadMyGcPrediction(league: any) {
         Aucun pronostic final enregistré pour le moment.
       </div>
     )}
-
-    <button
-      onClick={() => setGcOpen(true)}
-      className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
-    >
-      {myGcPrediction ? "Modifier mon podium" : "Faire mon pronostic"}
-    </button>
+{gcLocked ? (
+  <div className="mt-3 text-sm text-red-200 bg-red-500/10 border border-red-300/20 rounded-xl p-3">
+    🔒 Pronostic verrouillé
+    {gcDeadline && (
+      <div className="text-xs text-white/60 mt-1">
+        Deadline : {new Date(gcDeadline).toLocaleString("fr-FR")}
+      </div>
+    )}
+  </div>
+) : (
+  <button
+    onClick={() => setGcOpen(true)}
+    className="mt-3 px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30"
+  >
+    {myGcPrediction ? "Modifier mon podium" : "Faire mon pronostic"}
+  </button>
+)}
   </div>
   </div>
 )}
