@@ -55,11 +55,7 @@ type Team = {
   }[]
 }
 
-const [teams, setTeams] = useState<Team[]>([])
-const [teamName, setTeamName] = useState("")
-const [teamShortName, setTeamShortName] = useState("")
-const [teamCountry, setTeamCountry] = useState("")
-const [teamSearch, setTeamSearch] = useState("")
+
 
 export default function AdminPage() {
   const router = useRouter()
@@ -72,6 +68,12 @@ export default function AdminPage() {
   const [riders, setRiders] = useState<Rider[]>([])
   const [selectedGroupId, setSelectedGroupId] = useState("")
   const [stageNumber, setStageNumber] = useState("")
+
+  const [teams, setTeams] = useState<Team[]>([])
+const [teamName, setTeamName] = useState("")
+const [teamShortName, setTeamShortName] = useState("")
+const [teamCountry, setTeamCountry] = useState("")
+const [teamSearch, setTeamSearch] = useState("")
 
   const [firstResultRiderId, setFirstResultRiderId] = useState<string | null>(null)
   const [secondResultRiderId, setSecondResultRiderId] = useState<string | null>(null)
