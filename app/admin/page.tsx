@@ -29,6 +29,7 @@ type Rider = {
   nationality?: string | null
   team?: string | null
   is_active?: boolean | null
+  team_id?: string | null
 }
 
 type RaceGroup = {
@@ -79,6 +80,12 @@ const [editingTeamId, setEditingTeamId] = useState("")
 const [editTeamName, setEditTeamName] = useState("")
 const [editTeamShortName, setEditTeamShortName] = useState("")
 const [editTeamCountry, setEditTeamCountry] = useState("")
+
+const [editingRiderId, setEditingRiderId] = useState("")
+const [editRiderName, setEditRiderName] = useState("")
+const [editRiderShortName, setEditRiderShortName] = useState("")
+const [editRiderNationality, setEditRiderNationality] = useState("")
+const [editRiderTeamId, setEditRiderTeamId] = useState("")
 
   const [firstResultRiderId, setFirstResultRiderId] = useState<string | null>(null)
   const [secondResultRiderId, setSecondResultRiderId] = useState<string | null>(null)
@@ -657,6 +664,47 @@ async function updateRace() {
     await loadStats()
   }
 
+  function startEditRider(rider: Rider) {
+  setEditingRiderId(rider.id)
+  setEditRiderName(rider.full_name || "")
+  setEditRiderShortName(rider.short_name || "")
+  setEditRiderNationality(rider.nationality || "")
+  setEditRiderTeamId(rider.team_id || "")
+}
+
+async function updateRider() {
+  if (!editingRiderId) return
+
+  const selectedTeam = teams.find((t) => t.id === editRiderTeamId)
+
+  const { error } = await supabase
+    .from("riders")
+    .update({
+      full_name: editRiderName.trim(),
+      short_name: editRiderShortName.trim() || null,
+      nationality: editRiderNationality.trim() || null,
+      team_id: editRiderTeamId || null,
+
+      // on garde le champ texte pour compatibilité
+      team: selectedTeam?.name || null,
+    })
+    .eq("id", editingRiderId)
+
+  if (error) {
+    alert("Erreur modification coureur : " + error.message)
+    return
+  }
+
+  alert("Coureur modifié ✅")
+  setEditingRiderId("")
+  setEditRiderName("")
+  setEditRiderShortName("")
+  setEditRiderNationality("")
+  setEditRiderTeamId("")
+  await loadRiders()
+  await loadTeams()
+}
+
   async function toggleRiderActive(rider: Rider) {
     const { error } = await supabase
       .from("riders")
@@ -1087,6 +1135,70 @@ async function updateRace() {
                 </button>
               </div>
             </div>
+            {editingRiderId && (
+  <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mt-6">
+    <h2 className="text-2xl font-bold mb-4">Modifier le coureur</h2>
+
+    <div className="space-y-4">
+      <input
+        value={editRiderName}
+        onChange={(e) => setEditRiderName(e.target.value)}
+        placeholder="Nom complet"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <input
+        value={editRiderShortName}
+        onChange={(e) => setEditRiderShortName(e.target.value)}
+        placeholder="Nom court"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <input
+        value={editRiderNationality}
+        onChange={(e) => setEditRiderNationality(e.target.value)}
+        placeholder="Nationalité"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <select
+        value={editRiderTeamId}
+        onChange={(e) => setEditRiderTeamId(e.target.value)}
+        className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
+      >
+        <option value="" style={{ backgroundColor: "#111827", color: "#ffffff" }}>
+          Aucune équipe
+        </option>
+
+        {teams.map((team) => (
+          <option
+            key={team.id}
+            value={team.id}
+            style={{ backgroundColor: "#111827", color: "#ffffff" }}
+          >
+            {team.name}
+          </option>
+        ))}
+      </select>
+
+      <div className="flex gap-3">
+        <button
+          onClick={updateRider}
+          className="px-4 py-3 rounded-2xl bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-300/20 transition font-semibold"
+        >
+          Enregistrer
+        </button>
+
+        <button
+          onClick={() => setEditingRiderId("")}
+          className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
@@ -1113,6 +1225,12 @@ async function updateRace() {
                         {rider.nationality || "—"}
                       </div>
                     </div>
+                    <button
+  onClick={() => startEditRider(rider)}
+  className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+>
+  Modifier
+</button>
 
                     <button
                       onClick={() => toggleRiderActive(rider)}
