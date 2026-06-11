@@ -130,6 +130,7 @@ const [editRiderTeamId, setEditRiderTeamId] = useState("")
   const [riderTeam, setRiderTeam] = useState("")
   const [riderSearch, setRiderSearch] = useState("")
   const [tab, setTab] = useState<"overview" | "races" | "results" | "riders" | "teams" | "groups" | "gcResults">("overview")
+  const [riderTeamId, setRiderTeamId] = useState("")
 
 const [raceGroups, setRaceGroups] = useState<RaceGroup[]>([])
 
@@ -640,12 +641,14 @@ async function updateRace() {
       alert("Nom du coureur obligatoire")
       return
     }
+    const selectedTeam = teams.find((t) => t.id === riderTeamId)
 
     const { error } = await supabase.from("riders").insert({
       full_name: riderName.trim(),
       short_name: riderShortName.trim() || null,
       nationality: riderNationality.trim() || null,
-      team: riderTeam.trim() || null,
+      team_id: riderTeamId || null,
+      team: selectedTeam?.name || riderTeam.trim() || null,
       is_active: true,
     })
 
@@ -656,11 +659,13 @@ async function updateRace() {
     }
 
     alert("Coureur ajouté ✅")
-    setRiderName("")
-    setRiderShortName("")
-    setRiderNationality("")
-    setRiderTeam("")
-    await loadRiders()
+  setRiderName("")
+  setRiderShortName("")
+  setRiderNationality("")
+  setRiderTeam("")
+  setRiderTeamId("")
+  await loadRiders()
+  await loadTeams()
     await loadStats()
   }
 
@@ -1120,12 +1125,25 @@ async function updateRider() {
                   placeholder="Nationalité"
                   className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
                 />
-                <input
-                  value={riderTeam}
-                  onChange={(e) => setRiderTeam(e.target.value)}
-                  placeholder="Équipe"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
-                />
+                <select
+  value={riderTeamId}
+  onChange={(e) => setRiderTeamId(e.target.value)}
+  className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
+>
+  <option value="" style={{ backgroundColor: "#111827", color: "#ffffff" }}>
+    Aucune équipe
+  </option>
+
+  {teams.map((team) => (
+    <option
+      key={team.id}
+      value={team.id}
+      style={{ backgroundColor: "#111827", color: "#ffffff" }}
+    >
+      {team.name}
+    </option>
+  ))}
+</select>
 
                 <button
                   onClick={createRider}
