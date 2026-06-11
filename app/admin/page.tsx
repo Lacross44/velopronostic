@@ -75,6 +75,11 @@ const [teamShortName, setTeamShortName] = useState("")
 const [teamCountry, setTeamCountry] = useState("")
 const [teamSearch, setTeamSearch] = useState("")
 
+const [editingTeamId, setEditingTeamId] = useState("")
+const [editTeamName, setEditTeamName] = useState("")
+const [editTeamShortName, setEditTeamShortName] = useState("")
+const [editTeamCountry, setEditTeamCountry] = useState("")
+
   const [firstResultRiderId, setFirstResultRiderId] = useState<string | null>(null)
   const [secondResultRiderId, setSecondResultRiderId] = useState<string | null>(null)
   const [thirdResultRiderId, setThirdResultRiderId] = useState<string | null>(null)
@@ -375,6 +380,38 @@ async function createTeam() {
   setTeamName("")
   setTeamShortName("")
   setTeamCountry("")
+  await loadTeams()
+}
+
+function startEditTeam(team: Team) {
+  setEditingTeamId(team.id)
+  setEditTeamName(team.name || "")
+  setEditTeamShortName(team.short_name || "")
+  setEditTeamCountry(team.country || "")
+}
+
+async function updateTeam() {
+  if (!editingTeamId) return
+
+  const { error } = await supabase
+    .from("teams")
+    .update({
+      name: editTeamName.trim(),
+      short_name: editTeamShortName.trim() || null,
+      country: editTeamCountry.trim() || null,
+    })
+    .eq("id", editingTeamId)
+
+  if (error) {
+    alert("Erreur modification équipe : " + error.message)
+    return
+  }
+
+  alert("Équipe modifiée ✅")
+  setEditingTeamId("")
+  setEditTeamName("")
+  setEditTeamShortName("")
+  setEditTeamCountry("")
   await loadTeams()
 }
 
@@ -1134,6 +1171,51 @@ async function updateRace() {
       </div>
     </div>
 
+    {editingTeamId && (
+  <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mt-6">
+    <h2 className="text-2xl font-bold mb-4">Modifier l’équipe</h2>
+
+    <div className="space-y-4">
+      <input
+        value={editTeamName}
+        onChange={(e) => setEditTeamName(e.target.value)}
+        placeholder="Nom de l’équipe"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <input
+        value={editTeamShortName}
+        onChange={(e) => setEditTeamShortName(e.target.value)}
+        placeholder="Nom court"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <input
+        value={editTeamCountry}
+        onChange={(e) => setEditTeamCountry(e.target.value)}
+        placeholder="Pays"
+        className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+      />
+
+      <div className="flex gap-3">
+        <button
+          onClick={updateTeam}
+          className="px-4 py-3 rounded-2xl bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-300/20 transition font-semibold"
+        >
+          Enregistrer
+        </button>
+
+        <button
+          onClick={() => setEditingTeamId("")}
+          className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <h2 className="text-2xl font-bold">Équipes existantes</h2>
@@ -1180,7 +1262,12 @@ async function updateRace() {
     </div>
   )}
 </div>
-
+<button
+  onClick={() => startEditTeam(team)}
+  className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
+>
+  Modifier
+</button>
 
             <button
               onClick={() => toggleTeamActive(team)}
