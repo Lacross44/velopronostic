@@ -42,6 +42,25 @@ type RaceGroup = {
   }[]
 }
 
+type Team = {
+  id: string
+  name: string
+  short_name?: string | null
+  country?: string | null
+  is_active?: boolean | null
+  riders?: {
+    id: string
+    full_name: string
+    short_name?: string | null
+  }[]
+}
+
+const [teams, setTeams] = useState<Team[]>([])
+const [teamName, setTeamName] = useState("")
+const [teamShortName, setTeamShortName] = useState("")
+const [teamCountry, setTeamCountry] = useState("")
+const [teamSearch, setTeamSearch] = useState("")
+
 export default function AdminPage() {
   const router = useRouter()
 
@@ -96,7 +115,7 @@ export default function AdminPage() {
   const [riderNationality, setRiderNationality] = useState("")
   const [riderTeam, setRiderTeam] = useState("")
   const [riderSearch, setRiderSearch] = useState("")
-  const [tab, setTab] = useState<"overview" | "races" | "results" | "riders" | "groups" | "gcResults">("overview")
+  const [tab, setTab] = useState<"overview" | "races" | "results" | "riders" | "teams" | "groups" | "gcResults">("overview")
 
 const [raceGroups, setRaceGroups] = useState<RaceGroup[]>([])
 
@@ -150,7 +169,7 @@ const [gcResFirstFrenchId, setGcResFirstFrenchId] = useState<string | null>(null
     setUser(user)
     setProfile(profile)
 
-    await Promise.all([loadRaces(), loadRiders(), loadRaceGroups(), loadStats()])
+    await Promise.all([loadRaces(), loadRiders(), loadTeams(), loadRaceGroups(), loadStats()])
     setLoading(false)
   }
 
@@ -310,6 +329,72 @@ async function createRaceGroup() {
     await loadRaces()
     await loadStats()
   }
+
+ async function loadTeams() {
+  const { data, error } = await supabase
+    .from("teams")
+    .select(`
+      *,
+      riders (
+        id,
+        full_name,
+        short_name
+      )
+    `)
+    .order("name", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    return
+  }
+
+  setTeams((data || []) as Team[])
+}
+
+async function createTeam() {
+  if (!teamName.trim()) {
+    alert("Nom d’équipe obligatoire")
+    return
+  }
+
+  const { error } = await supabase.from("teams").insert({
+    name: teamName.trim(),
+    short_name: teamShortName.trim() || null,
+    country: teamCountry.trim() || null,
+    is_active: true,
+  })
+
+  if (error) {
+    alert("Erreur création équipe : " + error.message)
+    return
+  }
+
+  alert("Équipe ajoutée ✅")
+  setTeamName("")
+  setTeamShortName("")
+  setTeamCountry("")
+  await loadTeams()
+}
+
+async function toggleTeamActive(team: Team) {
+  const { error } = await supabase
+    .from("teams")
+    .update({ is_active: !team.is_active })
+    .eq("id", team.id)
+
+  if (error) {
+    alert(error.message)
+    return
+  }
+
+  await loadTeams()
+}
+
+const filteredTeams = teams.filter((t) =>
+  `${t.name} ${t.short_name || ""} ${t.country || ""}`
+    .toLowerCase()
+    .includes(teamSearch.toLowerCase())
+)
 
 function formatForDateTimeLocal(dateString?: string | null) {
   if (!dateString) return ""
@@ -598,6 +683,7 @@ async function updateRace() {
   ["riders", "🚴 Coureurs"],
   ["groups", "🗂 Groupes de courses"],
   ["gcResults", "🏆 Résultat CG final"],
+  ["teams", "🏢 Équipes"],
 ].map(([key, label]) => (
   <button
     key={key}
@@ -1009,6 +1095,111 @@ async function updateRace() {
             </div>
           </div>
         )}
+
+        {tab === "teams" && (
+  <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 className="text-2xl font-bold mb-4">Ajouter une équipe</h2>
+
+      <div className="space-y-4">
+        <input
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
+          placeholder="Nom de l’équipe"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <input
+          value={teamShortName}
+          onChange={(e) => setTeamShortName(e.target.value)}
+          placeholder="Nom court"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <input
+          value={teamCountry}
+          onChange={(e) => setTeamCountry(e.target.value)}
+          placeholder="Pays"
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
+
+        <button
+          onClick={createTeam}
+          className="w-full px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-semibold"
+        >
+          Ajouter l’équipe
+        </button>
+      </div>
+    </div>
+
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <h2 className="text-2xl font-bold">Équipes existantes</h2>
+
+        <input
+          value={teamSearch}
+          onChange={(e) => setTeamSearch(e.target.value)}
+          placeholder="Rechercher une équipe..."
+          className="rounded-xl border border-white/10 bg-white/5 p-3 text-white md:w-80"
+        />
+      </div>
+
+      <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+        {filteredTeams.map((team) => (
+          <div
+            key={team.id}
+            className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4"
+          >
+            <div className="min-w-0">
+              <div className="font-bold truncate">{team.name}</div>
+              <div className="text-sm text-white/60">
+                {team.short_name || "—"} • {team.country || "—"}
+              </div>
+            </div>
+<div className="mt-3">
+  <div className="text-xs text-white/50 mb-1">
+    Coureurs rattachés : {team.riders?.length || 0}
+  </div>
+
+  {team.riders && team.riders.length > 0 ? (
+    <div className="flex flex-wrap gap-2">
+      {team.riders.map((rider) => (
+        <span
+          key={rider.id}
+          className="text-xs px-2 py-1 rounded-full bg-white/10 border border-white/10 text-white/80"
+        >
+          {rider.short_name || rider.full_name}
+        </span>
+      ))}
+    </div>
+  ) : (
+    <div className="text-xs text-white/40">
+      Aucun coureur rattaché.
+    </div>
+  )}
+</div>
+
+
+            <button
+              onClick={() => toggleTeamActive(team)}
+              className={`px-3 py-2 rounded-xl border transition ${
+                team.is_active
+                  ? "bg-emerald-500/20 border-emerald-300/20"
+                  : "bg-red-500/20 border-red-300/20"
+              }`}
+            >
+              {team.is_active ? "Actif" : "Inactif"}
+            </button>
+          </div>
+        ))}
+
+        {filteredTeams.length === 0 && (
+          <div className="text-white/60">Aucune équipe trouvée.</div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
         {tab === "groups" && (
   <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
