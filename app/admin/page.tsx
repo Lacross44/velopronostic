@@ -151,6 +151,7 @@ const [gcResFirstId, setGcResFirstId] = useState<string | null>(null)
 const [gcResSecondId, setGcResSecondId] = useState<string | null>(null)
 const [gcResThirdId, setGcResThirdId] = useState<string | null>(null)
 const [gcResFirstFrenchId, setGcResFirstFrenchId] = useState<string | null>(null)
+const [existingGroupResult, setExistingGroupResult] = useState<any>(null)
 
   const selectedRace = useMemo(
     () => races.find((r) => r.id === selectedRaceId) || null,
@@ -641,6 +642,40 @@ async function updateRace() {
   setGcResSecondId(null)
   setGcResThirdId(null)
   setGcResFirstFrenchId(null)
+  await loadExistingGroupResult(selectedGcGroupId)
+}
+
+async function loadExistingGroupResult(groupId: string) {
+  if (!groupId) {
+    setExistingGroupResult(null)
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("group_results")
+    .select("*")
+    .eq("race_group_id", groupId)
+    .maybeSingle()
+
+  if (error) {
+    console.error(error)
+    setExistingGroupResult(null)
+    return
+  }
+
+  setExistingGroupResult(data || null)
+
+  if (data) {
+    setGcResFirst(data.gc_first || "")
+    setGcResSecond(data.gc_second || "")
+    setGcResThird(data.gc_third || "")
+    setGcResFirstFrench(data.gc_first_french || "")
+
+    setGcResFirstId(data.gc_first_rider_id || null)
+    setGcResSecondId(data.gc_second_rider_id || null)
+    setGcResThirdId(data.gc_third_rider_id || null)
+    setGcResFirstFrenchId(data.gc_first_french_rider_id || null)
+  }
 }
 
   async function createRider() {
@@ -1523,7 +1558,10 @@ async function updateRider() {
       <div className="space-y-4">
         <select
           value={selectedGcGroupId}
-          onChange={(e) => setSelectedGcGroupId(e.target.value)}
+          onChange={(e) => {
+  setSelectedGcGroupId(e.target.value)
+  loadExistingGroupResult(e.target.value)
+}}
           className="w-full rounded-xl border border-white/10 bg-slate-800 p-3 text-white"
         >
           <option value="" style={{ backgroundColor: "#111827", color: "#ffffff" }}>
@@ -1540,6 +1578,15 @@ async function updateRider() {
             </option>
           ))}
         </select>
+        {existingGroupResult ? (
+  <div className="rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-3 text-sm text-emerald-100">
+    ✅ Résultat CG déjà saisi. Tu peux le modifier puis réenregistrer.
+  </div>
+) : selectedGcGroupId ? (
+  <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white/70">
+    Aucun résultat CG saisi pour ce groupe.
+  </div>
+) : null}
 
         <RiderAutocomplete
           label="🥇 Vainqueur final"
