@@ -122,6 +122,7 @@ const [editRiderTeamId, setEditRiderTeamId] = useState("")
   const [second, setSecond] = useState("")
   const [third, setThird] = useState("")
   const [firstFrench, setFirstFrench] = useState("")
+  const [resultRaceSearch, setResultRaceSearch] = useState("")
 
   // Coureurs
   const [riderName, setRiderName] = useState("")
@@ -436,6 +437,12 @@ async function toggleTeamActive(team: Team) {
 
   await loadTeams()
 }
+
+const filteredResultRaces = races.filter((race) =>
+  `${race.name} ${race.race_groups?.name || ""} ${race.race_type || ""}`
+    .toLowerCase()
+    .includes(resultRaceSearch.toLowerCase())
+)
 
 const filteredTeams = teams.filter((t) =>
   `${t.name} ${t.short_name || ""} ${t.country || ""}`
@@ -1026,16 +1033,24 @@ async function updateRider() {
               <h2 className="text-2xl font-bold mb-4">Saisir un résultat</h2>
 
               <div className="space-y-4">
+                <input
+  value={resultRaceSearch}
+  onChange={(e) => setResultRaceSearch(e.target.value)}
+  placeholder="Rechercher une course..."
+  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+/>
                 <select
                   value={selectedRaceId}
                   onChange={(e) => setSelectedRaceId(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white"
                 >
                   <option value="" className="text-white">Choisir une course</option>
-                  {races.map((race) => (
+                  {filteredResultRaces.map((race) => (
                     <option key={race.id} value={race.id}>
-                      {race.name}
-                    </option>
+  {race.name}
+  {race.race_groups?.name ? ` — ${race.race_groups.name}` : ""}
+  {race.stage_number ? ` — Étape ${race.stage_number}` : ""}
+</option>
                   ))}
                 </select>
 
