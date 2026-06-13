@@ -9,7 +9,12 @@ type Rider = {
   short_name?: string | null
   nationality?: string | null
   team?: string | null
+  team_id?: string | null
   is_active?: boolean | null
+  teams?: {
+    name: string
+    short_name?: string | null
+  }[] | null
 }
 
 type RiderAutocompleteProps = {
@@ -66,7 +71,19 @@ export default function RiderAutocomplete({
 
       const { data, error } = await supabase
         .from("riders")
-        .select("id, full_name, short_name, nationality, team, is_active")
+        .select(`
+  id,
+  full_name,
+  short_name,
+  nationality,
+  team,
+  team_id,
+  is_active,
+  teams (
+    name,
+    short_name
+  )
+`)
         .ilike("full_name", `%${value.trim()}%`)
         .eq("is_active", true)
         .order("full_name", { ascending: true })
@@ -163,8 +180,8 @@ export default function RiderAutocomplete({
             >
               <div className="font-semibold text-white">{rider.full_name}</div>
               <div className="text-xs text-white/60">
-                {rider.short_name || "—"}
-                {rider.team ? ` • ${rider.team}` : ""}
+                {rider.teams?.[0]?.short_name || rider.team || ""}
+                {rider.teams?.[0]?.name || rider.team || "Équipe inconnue"}
                 {rider.nationality ? ` • ${rider.nationality}` : ""}
               </div>
             </button>
