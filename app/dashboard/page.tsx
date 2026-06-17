@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
 import RiderAutocomplete from "@/components/RiderAutocomplete"
+import TeamAutocomplete from "@/components/TeamAutocomplete"
 
 type League = {
   id: string

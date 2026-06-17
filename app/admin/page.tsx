@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabaseClient"
 import RiderAutocomplete from "@/components/RiderAutocomplete"
+import TeamAutocomplete from "@/components/TeamAutocomplete"
 
 type Race = {
   id: string
