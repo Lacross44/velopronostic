@@ -321,7 +321,8 @@ async function loadLeagueRaces(leagueId: string) {
         name,
         race_date,
         pronostic_deadline,
-        logo_url
+        logo_url,
+        race_type
       )
     `)
     .eq("league_id", leagueId)
