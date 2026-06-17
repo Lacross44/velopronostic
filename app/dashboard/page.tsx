@@ -1004,6 +1004,9 @@ third_team_id: thirdTeamId,
   second_rider_id: secondRiderId,
   third_rider_id: thirdRiderId,
   first_french_rider_id: firstFrenchRiderId,
+  first_team_id: firstTeamId,
+second_team_id: secondTeamId,
+third_team_id: thirdTeamId,
 })
 
       if (error) return alert(error.message)
