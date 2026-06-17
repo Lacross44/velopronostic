@@ -23,6 +23,7 @@ type Race = {
   race_date?: string | null
   pronostic_deadline?: string | null
   logo_url?: string | null
+  race_type?: string | null
 }
 
 export default function DashboardPage() {
@@ -90,6 +91,10 @@ const [gcPredictionsOpen, setGcPredictionsOpen] = useState(false)
   const [p2, setP2] = useState("")
   const [p3, setP3] = useState("")
   const [pF, setPF] = useState("")
+
+  const [firstTeamId, setFirstTeamId] = useState<string | null>(null)
+  const [secondTeamId, setSecondTeamId] = useState<string | null>(null)
+  const [thirdTeamId, setThirdTeamId] = useState<string | null>(null)
 
   // Username flow
   const [needsUsername, setNeedsUsername] = useState(false)
@@ -887,11 +892,17 @@ async function loadMyGcPrediction(league: any) {
   setSecondRiderId(existing.second_rider_id || null)
   setThirdRiderId(existing.third_rider_id || null)
   setFirstFrenchRiderId(existing.first_french_rider_id || null)
+  setFirstTeamId(existing.first_team_id || null)
+setSecondTeamId(existing.second_team_id || null)
+setThirdTeamId(existing.third_team_id || null)
 } else {
   setFirstRiderId(null)
   setSecondRiderId(null)
   setThirdRiderId(null)
   setFirstFrenchRiderId(null)
+  setFirstTeamId(null)
+setSecondTeamId(null)
+setThirdTeamId(null)
 }
 
     const deadline = toDate(race.pronostic_deadline)
@@ -972,6 +983,9 @@ if (!selectedLeague?.race_group_id && nextRace?.id !== pronoRace.id) {
     second_rider_id: secondRiderId,
     third_rider_id: thirdRiderId,
     first_french_rider_id: firstFrenchRiderId,
+    first_team_id: firstTeamId,
+second_team_id: secondTeamId,
+third_team_id: thirdTeamId,
   })
   .eq("id", myPrediction.id)
 
@@ -1818,50 +1832,81 @@ if (!selectedLeague?.race_group_id && nextRace?.id !== pronoRace.id) {
             return (
               <div>
                 <div className="grid grid-cols-1 gap-3">
-                  <RiderAutocomplete
-                    label="1er"
-                    placeholder="chercher le vainqueur"
-                    value={p1}
-                    selectedId={firstRiderId}
-                    onValueChange={setP1}
-                    onSelect={(rider) => setFirstRiderId(rider?.id || null)}
-                    excludedIds={[
-                      secondRiderId || "",
-                      thirdRiderId || "",
-                    ].filter(Boolean)}
-                    />
-                  <RiderAutocomplete
-                    label="2ème"
-                    placeholder="Qui sera 2ème ?"
-                    value={p2}
-                    selectedId={secondRiderId}
-                    onValueChange={setP2}
-                    onSelect={(rider) => setSecondRiderId(rider?.id || null)}
-                    excludedIds={[
-                      firstRiderId || "",
-                      thirdRiderId || "",
-                    ].filter(Boolean)}
-                    />
-                  <RiderAutocomplete
-                    label="3ème"
-                    placeholder="Qui complètera le podium ?"
-                    value={p3}
-                    selectedId={thirdRiderId}
-                    onValueChange={setP3}
-                    onSelect={(rider) => setThirdRiderId(rider?.id || null)}
-                    excludedIds={[
-                      secondRiderId || "",
-                      firstRiderId || "",
-                    ].filter(Boolean)}
-                    />
-                  <RiderAutocomplete
-                    label="1er français"
-                    placeholder="le frenchie du jour"
-                    value={pF}
-                    selectedId={firstFrenchRiderId}
-                    onValueChange={setPF}
-                    onSelect={(rider) => setFirstFrenchRiderId(rider?.id || null)}
-                    />
+                  
+{pronoRace.race_type === "ttt" ? (
+  <div className="grid grid-cols-1 gap-4">
+    <TeamAutocomplete
+      label="👥 Équipe gagnante"
+      placeholder="Chercher l’équipe gagnante"
+      value={p1}
+      selectedId={firstTeamId}
+      onValueChange={setP1}
+      onSelect={(team) => setFirstTeamId(team?.id || null)}
+      excludedIds={[secondTeamId || "", thirdTeamId || ""].filter(Boolean)}
+    />
+
+    <TeamAutocomplete
+      label="👥 Deuxième équipe"
+      placeholder="Chercher la 2e équipe"
+      value={p2}
+      selectedId={secondTeamId}
+      onValueChange={setP2}
+      onSelect={(team) => setSecondTeamId(team?.id || null)}
+      excludedIds={[firstTeamId || "", thirdTeamId || ""].filter(Boolean)}
+    />
+
+    <TeamAutocomplete
+      label="👥 Troisième équipe"
+      placeholder="Chercher la 3e équipe"
+      value={p3}
+      selectedId={thirdTeamId}
+      onValueChange={setP3}
+      onSelect={(team) => setThirdTeamId(team?.id || null)}
+      excludedIds={[firstTeamId || "", secondTeamId || ""].filter(Boolean)}
+    />
+  </div>
+) : (
+  <div className="grid grid-cols-1 gap-4">
+    <RiderAutocomplete
+      label="🥇 1er"
+      placeholder="Chercher le vainqueur"
+      value={p1}
+      selectedId={firstRiderId}
+      onValueChange={setP1}
+      onSelect={(rider) => setFirstRiderId(rider?.id || null)}
+      excludedIds={[secondRiderId || "", thirdRiderId || ""].filter(Boolean)}
+    />
+
+    <RiderAutocomplete
+      label="🥈 2e"
+      placeholder="Chercher le 2e"
+      value={p2}
+      selectedId={secondRiderId}
+      onValueChange={setP2}
+      onSelect={(rider) => setSecondRiderId(rider?.id || null)}
+      excludedIds={[firstRiderId || "", thirdRiderId || ""].filter(Boolean)}
+    />
+
+    <RiderAutocomplete
+      label="🥉 3e"
+      placeholder="Chercher le 3e"
+      value={p3}
+      selectedId={thirdRiderId}
+      onValueChange={setP3}
+      onSelect={(rider) => setThirdRiderId(rider?.id || null)}
+      excludedIds={[firstRiderId || "", secondRiderId || ""].filter(Boolean)}
+    />
+
+    <RiderAutocomplete
+      label="🇫🇷 1er Français"
+      placeholder="Chercher le 1er Français"
+      value={pF}
+      selectedId={firstFrenchRiderId}
+      onValueChange={setPF}
+      onSelect={(rider) => setFirstFrenchRiderId(rider?.id || null)}
+    />
+  </div>
+)}
                 </div>
 
                 <button
