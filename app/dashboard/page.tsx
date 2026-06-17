@@ -1512,7 +1512,10 @@ if (!selectedLeague?.race_group_id && nextRace?.id !== pronoRace.id) {
                   {racesToDisplay.map((race) => {
                     const deadline = toDate(race.pronostic_deadline)
                     const isFinished = deadline ? deadline <= new Date() : false
-                    const isNext = nextRace?.id === race.id
+
+                    const canPronosticate = selectedLeague?.race_group_id
+                      ? !isFinished
+                      : nextRace?.id === race.id
 
                     return (
                       <div
@@ -1535,7 +1538,7 @@ if (!selectedLeague?.race_group_id && nextRace?.id !== pronoRace.id) {
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                          {isNext ? (
+                          {canPronosticate ? (
   <button
     onClick={() => openProno(race)}
     className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
