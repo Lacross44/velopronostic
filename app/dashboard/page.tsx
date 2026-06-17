@@ -78,6 +78,7 @@ const [gcPredictionsOpen, setGcPredictionsOpen] = useState(false)
   const [pronoLoading, setPronoLoading] = useState(false)
   const [myPrediction, setMyPrediction] = useState<any>(null)
   const [otherLeaguePredictions, setOtherLeaguePredictions] = useState<any[]>([])
+  
 
   const [firstRiderId, setFirstRiderId] = useState<string | null>(null)
   const [secondRiderId, setSecondRiderId] = useState<string | null>(null)
@@ -928,10 +929,19 @@ async function loadMyGcPrediction(league: any) {
     if (!pronoRace || !selectedLeague || !user?.id) return
 
     // Only allow for nextRace
-    if (nextRace?.id !== pronoRace.id) {
-      alert("Tu ne peux pronostiquer que la prochaine course.")
-      return
-    }
+const dl = toDate(pronoRace.pronostic_deadline)
+
+if (!dl || dl <= new Date()) {
+  alert("La deadline est dépassée pour cette course.")
+  return
+}
+
+// Ligue classique : uniquement prochaine course
+// Ligue groupe : toutes les étapes ouvertes
+if (!selectedLeague?.race_group_id && nextRace?.id !== pronoRace.id) {
+  alert("Tu ne peux pronostiquer que la prochaine course.")
+  return
+}
 
     const deadline = toDate(pronoRace.pronostic_deadline)
     const locked = deadline ? deadline <= new Date() : false
