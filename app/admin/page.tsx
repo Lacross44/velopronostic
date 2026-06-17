@@ -92,6 +92,9 @@ const [editRiderTeamId, setEditRiderTeamId] = useState("")
   const [secondResultRiderId, setSecondResultRiderId] = useState<string | null>(null)
   const [thirdResultRiderId, setThirdResultRiderId] = useState<string | null>(null)
   const [firstFrenchResultRiderId, setFirstFrenchResultRiderId] = useState<string | null>(null)
+  const [firstResultTeamId, setFirstResultTeamId] = useState<string | null>(null)
+const [secondResultTeamId, setSecondResultTeamId] = useState<string | null>(null)
+const [thirdResultTeamId, setThirdResultTeamId] = useState<string | null>(null)
 
   const [stats, setStats] = useState({
     races: 0,
@@ -533,10 +536,17 @@ async function updateRace() {
   async function saveResults() {
     if (!selectedRace) return
 
-    if (!first || !second || !third || !firstFrench) {
-      alert("Merci de saisir Top 3 + 1er français")
-      return
-    }
+    if (selectedRace?.race_type === "ttt") {
+  if (!first || !second || !third) {
+    alert("Merci de saisir les 3 premières équipes.")
+    return
+  }
+} else {
+  if (!first || !second || !third || !firstFrench) {
+    alert("Merci de saisir Top 3 + 1er Français.")
+    return
+  }
+}
 
     const { error: upsertError } = await supabase
   .from("results")
@@ -551,6 +561,9 @@ async function updateRace() {
       second_place_rider_id: secondResultRiderId,
       third_place_rider_id: thirdResultRiderId,
       first_french_rider_id: firstFrenchResultRiderId,
+      first_team_id: firstResultTeamId,
+      second_team_id: secondResultTeamId,
+      third_team_id: thirdResultTeamId,
     },
     { onConflict: "race_id" }
   )
@@ -584,6 +597,9 @@ async function updateRace() {
     setSecondResultRiderId(null)
     setThirdResultRiderId(null)
     setFirstFrenchResultRiderId(null)
+    setFirstResultTeamId(null)
+    setSecondResultTeamId(null)
+    setThirdResultTeamId(null)
 
     await loadStats()
   }
@@ -1090,44 +1106,84 @@ async function updateRider() {
                   ))}
                 </select>
 
-                <RiderAutocomplete
-  label="🥇 1er"
-  placeholder="Chercher le vainqueur"
-  value={first}
-  selectedId={firstResultRiderId}
-  onValueChange={setFirst}
-  onSelect={(rider) => setFirstResultRiderId(rider?.id || null)}
-  excludedIds={[secondResultRiderId || "", thirdResultRiderId || ""].filter(Boolean)}
-/>
+              {selectedRace?.race_type === "ttt" ? (
+  <div className="space-y-4">
+    <TeamAutocomplete
+      label="👥 Équipe gagnante"
+      placeholder="Chercher l’équipe gagnante"
+      value={first}
+      selectedId={firstResultTeamId}
+      onValueChange={setFirst}
+      onSelect={(team) => setFirstResultTeamId(team?.id || null)}
+      excludedIds={[secondResultTeamId || "", thirdResultTeamId || ""].filter(Boolean)}
+    />
 
-<RiderAutocomplete
-  label="🥈 2e"
-  placeholder="Chercher le 2e"
-  value={second}
-  selectedId={secondResultRiderId}
-  onValueChange={setSecond}
-  onSelect={(rider) => setSecondResultRiderId(rider?.id || null)}
-  excludedIds={[firstResultRiderId || "", thirdResultRiderId || ""].filter(Boolean)}
-/>
+    <TeamAutocomplete
+      label="👥 Deuxième équipe"
+      placeholder="Chercher la 2e équipe"
+      value={second}
+      selectedId={secondResultTeamId}
+      onValueChange={setSecond}
+      onSelect={(team) => setSecondResultTeamId(team?.id || null)}
+      excludedIds={[firstResultTeamId || "", thirdResultTeamId || ""].filter(Boolean)}
+    />
 
-<RiderAutocomplete
-  label="🥉 3e"
-  placeholder="Chercher le 3e"
-  value={third}
-  selectedId={thirdResultRiderId}
-  onValueChange={setThird}
-  onSelect={(rider) => setThirdResultRiderId(rider?.id || null)}
-  excludedIds={[firstResultRiderId || "", secondResultRiderId || ""].filter(Boolean)}
-/>
+    <TeamAutocomplete
+      label="👥 Troisième équipe"
+      placeholder="Chercher la 3e équipe"
+      value={third}
+      selectedId={thirdResultTeamId}
+      onValueChange={setThird}
+      onSelect={(team) => setThirdResultTeamId(team?.id || null)}
+      excludedIds={[firstResultTeamId || "", secondResultTeamId || ""].filter(Boolean)}
+    />
 
-<RiderAutocomplete
-  label="🇫🇷 1er Français"
-  placeholder="Chercher le 1er Français"
-  value={firstFrench}
-  selectedId={firstFrenchResultRiderId}
-  onValueChange={setFirstFrench}
-  onSelect={(rider) => setFirstFrenchResultRiderId(rider?.id || null)}
-/>
+    <div className="text-sm text-white/60 rounded-xl border border-white/10 bg-white/5 p-3">
+      Pour un contre-la-montre par équipes, il n’y a pas de 1er Français à saisir.
+    </div>
+  </div>
+) : (
+  <div className="space-y-4">
+    <RiderAutocomplete
+      label="🥇 1er"
+      placeholder="Chercher le vainqueur"
+      value={first}
+      selectedId={firstResultRiderId}
+      onValueChange={setFirst}
+      onSelect={(rider) => setFirstResultRiderId(rider?.id || null)}
+      excludedIds={[secondResultRiderId || "", thirdResultRiderId || ""].filter(Boolean)}
+    />
+
+    <RiderAutocomplete
+      label="🥈 2e"
+      placeholder="Chercher le 2e"
+      value={second}
+      selectedId={secondResultRiderId}
+      onValueChange={setSecond}
+      onSelect={(rider) => setSecondResultRiderId(rider?.id || null)}
+      excludedIds={[firstResultRiderId || "", thirdResultRiderId || ""].filter(Boolean)}
+    />
+
+    <RiderAutocomplete
+      label="🥉 3e"
+      placeholder="Chercher le 3e"
+      value={third}
+      selectedId={thirdResultRiderId}
+      onValueChange={setThird}
+      onSelect={(rider) => setThirdResultRiderId(rider?.id || null)}
+      excludedIds={[firstResultRiderId || "", secondResultRiderId || ""].filter(Boolean)}
+    />
+
+    <RiderAutocomplete
+      label="🇫🇷 1er Français"
+      placeholder="Chercher le 1er Français"
+      value={firstFrench}
+      selectedId={firstFrenchResultRiderId}
+      onValueChange={setFirstFrench}
+      onSelect={(rider) => setFirstFrenchResultRiderId(rider?.id || null)}
+    />
+  </div>
+)}
 
                 <button
                   onClick={saveResults}
