@@ -283,6 +283,15 @@ if (profileData?.role === "admin") {
     }
   }
 
+  function formatDateFr(dateString?: string | null) {
+  if (!dateString) return "—"
+
+  return new Date(dateString).toLocaleString("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  })
+}
+
   async function handleLogout() {
     await supabase.auth.signOut()
     window.location.href = "/login"
@@ -1548,10 +1557,10 @@ third_team_id: thirdTeamId,
                           <div className="min-w-0">
                             <div className="font-semibold truncate">{race.name}</div>
                             <div className="text-sm text-white/60">
-                              {race.race_date ? new Date(race.race_date).toLocaleDateString() : "—"}
+                              {race.race_date ? formatDateFr(race.race_date) : "—"}
                               {" • "}
                               Deadline :{" "}
-                              {race.pronostic_deadline ? new Date(race.pronostic_deadline).toLocaleString() : "—"}
+                              {race.pronostic_deadline ? formatDateFr(race.pronostic_deadline) : "—"}
                             </div>
                           </div>
                         </div>
@@ -1625,7 +1634,7 @@ third_team_id: thirdTeamId,
                             <div className="min-w-0">
                               <div className="font-bold truncate">{race.name}</div>
                               <div className="text-sm text-white/60">
-                                {race.race_date ? new Date(race.race_date).toLocaleDateString() : "—"}
+                                {race.race_date ? formatDateFr(race.race_date) : "—"}
                               </div>
                             </div>
 

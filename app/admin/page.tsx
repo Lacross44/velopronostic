@@ -324,8 +324,8 @@ async function createRaceGroup() {
 
     const { error } = await supabase.from("races").insert({
       name,
-      race_date: raceDate,
-      pronostic_deadline: deadline,
+      race_date: raceDate ? new Date(raceDate).toISOString() : null,
+      pronostic_deadline: deadline ? new Date(deadline).toISOString() : null,
       logo_url: logoUrl,
       race_group_id: selectedGroupId || null,
       stage_number: stageNumber ? Number(stageNumber) : null,
@@ -465,6 +465,15 @@ function formatForDateTimeLocal(dateString?: string | null) {
   const localDate = new Date(date.getTime() - offset * 60000)
 
   return localDate.toISOString().slice(0, 16)
+}
+
+function formatDateFr(dateString?: string | null) {
+  if (!dateString) return "—"
+
+  return new Date(dateString).toLocaleString("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  })
 }
 
 function startEditRace(race: any) {
@@ -1042,12 +1051,12 @@ async function updateRider() {
 </span>
                         <div className="font-bold truncate">{race.name}</div>
                         <div className="text-sm text-white/60">
-                          {race.race_date ? new Date(race.race_date).toLocaleString() : "—"}
+                          {race.race_date ? formatDateFr(race.race_date) : "—"}
                         </div>
                         <div className="text-xs text-white/50">
                           Deadline :{" "}
                           {race.pronostic_deadline
-                            ? new Date(race.pronostic_deadline).toLocaleString()
+                            ? formatDateFr(race.pronostic_deadline)
                             : "—"}
                         </div>
                         {race.race_groups && (
