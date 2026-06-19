@@ -470,10 +470,14 @@ function formatForDateTimeLocal(dateString?: string | null) {
 function formatDateFr(dateString?: string | null) {
   if (!dateString) return "—"
 
-  return new Date(dateString).toLocaleString("fr-FR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  })
+  const clean = dateString.replace("T", " ").slice(0, 16)
+  const [datePart, timePart] = clean.split(" ")
+
+  if (!datePart || !timePart) return dateString
+
+  const [year, month, day] = datePart.split("-")
+
+  return `${day}/${month}/${year} ${timePart}`
 }
 
 function startEditRace(race: any) {
