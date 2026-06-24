@@ -381,6 +381,34 @@ async function loadLeagueRaces(leagueId: string) {
   setAllRaces(data || [])
 }
 
+function getRaceTypeInfo(raceType?: string | null) {
+  switch (raceType) {
+    case "road":
+      return {
+        icon: "🚴",
+        label: "Route",
+      }
+
+    case "itt":
+      return {
+        icon: "⏱",
+        label: "CLM individuel",
+      }
+
+    case "ttt":
+      return {
+        icon: "👥",
+        label: "CLM équipes",
+      }
+
+    default:
+      return {
+        icon: "🏁",
+        label: "Course",
+      }
+  }
+}
+
   // ✅ RPC recommended
   async function loadGeneralRanking(leagueId: string) {
     const { data, error } = await supabase.rpc("get_league_general_ranking", { p_league_id: leagueId })
@@ -1548,6 +1576,7 @@ third_team_id: thirdTeamId,
                     const canPronosticate = selectedLeague?.race_group_id
                       ? !isFinished
                       : nextRace?.id === race.id
+                    const raceTypeInfo = getRaceTypeInfo(race.race_type)
 
                     return (
                       <div
@@ -1559,12 +1588,17 @@ third_team_id: thirdTeamId,
                             <img src={race.logo_url} alt={race.name} className="h-9 w-14 object-contain" />
                           )}
                           <div className="min-w-0">
-                            <div className="font-semibold truncate">{race.name}</div>
+                            <div className="font-semibold truncate"> 
+                               <span>{raceTypeInfo.icon}</span>
+  <span>{race.name}</span></div>
                             <div className="text-sm text-white/60">
                               {race.race_date ? formatDateFr(race.race_date) : "—"}
                               {" • "}
                               Deadline :{" "}
                               {race.pronostic_deadline ? formatDateFr(race.pronostic_deadline) : "—"}
+                            </div>
+                            <div className="text-xs text-white/50">
+                            {raceTypeInfo.label}
                             </div>
                           </div>
                         </div>
