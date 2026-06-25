@@ -1094,69 +1094,114 @@ third_team_id: thirdTeamId,
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-fuchsia-950 text-white">
       <div className="max-w-6xl mx-auto p-6 md:p-10">
         {/* Header */}
+{/* Header */}
 <div className="mb-8">
-  <div className="grid grid-cols-1 xl:grid-cols-[220px_1fr_240px] gap-4 items-stretch">
-    
-    {/* Colonne gauche : logo + nom */}
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col items-center justify-center text-center">
-      <img
-        src="/images/logo-velopronostic.png"
-        alt="Logo Velopronostic"
-        className="h-25 w-25 object-contain mb-3"
-      />
+  <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl overflow-hidden">
+    <div className="p-5 md:p-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_260px] gap-5 items-stretch">
+        
+        {/* Logo + nom */}
+        <div className="flex xl:flex-col items-center xl:justify-center gap-4 text-center">
+          <img
+            src="/images/logo-velopronostic.png"
+            alt="Logo Velopronostic"
+            className="h-20 w-20 md:h-24 md:w-24 object-contain drop-shadow-xl"
+          />
 
-      <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
-        Velopronostic
-      </h1>
-    </div>
+          <div>
+            <div className="text-xs uppercase tracking-[0.25em] text-indigo-200/70 font-semibold">
+              Fantasy cycling
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none mt-1">
+              Velopronostic
+            </h1>
+            <p className="text-sm text-white/55 mt-2">
+              Pronostique. Vibre. Gagne la ligue.
+            </p>
+          </div>
+        </div>
 
-    {/* Colonne centrale : règles */}
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="font-bold text-lg mb-3">📜 Règles du jeu</h2>
+        {/* Règles compactes */}
+        <div className="rounded-3xl border border-white/10 bg-slate-950/35 p-5">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="font-extrabold text-lg">📜 Règles du jeu</h2>
+            <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-300/20 text-indigo-100">
+              Barème officiel
+            </span>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-white/80">
-        <p>• Pronostique les prochaines courses avant la deadline.</p>
-        <p>• 5 pts pour le vainqueur.</p>
-        <p>• 4 pts pour le bon 2e.</p>
-        <p>• 3 pts pour le bon 3e.</p>
-        <p>• 2 pts pour le 1er Français.</p>
-        <p>• +1 pt si un coureur du top 3 est trouvé mais mal placé.</p>
-        <p>• Après la deadline, les pronos sont verrouillés.</p>
-        <p>• Les pronos et classements deviennent visibles après la course.</p>
-      </div>
-    </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="rounded-2xl bg-white/7 border border-white/10 p-3">
+              <div className="text-2xl font-black">5</div>
+              <div className="text-xs text-white/60">vainqueur</div>
+            </div>
 
-    {/* Colonne droite : profil + actions */}
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col justify-between">
-      <div>
-        <p className="text-sm text-white/60 mb-1">Connecté en tant que</p>
-        <p className="text-xl font-bold text-white mb-4">
-          {profile?.username || "Utilisateur"}
-        </p>
-      </div>
+            <div className="rounded-2xl bg-white/7 border border-white/10 p-3">
+              <div className="text-2xl font-black">4</div>
+              <div className="text-xs text-white/60">bon 2e</div>
+            </div>
 
-      <div className="flex flex-col gap-3">
-{profile?.role === "admin" && (
-  <button
-    onClick={() => router.push("/admin")}
-    className="px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-300/20 transition"
-  >
-    🛠 Admin
-  </button>
-)}
-      <button
-       onClick={() => router.push("/settings")}
-       className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 transition"
-      >
-      ⚙️ Paramètres
-      </button>
+            <div className="rounded-2xl bg-white/7 border border-white/10 p-3">
+              <div className="text-2xl font-black">3</div>
+              <div className="text-xs text-white/60">bon 3e</div>
+            </div>
 
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-300/20 transition"
-        >
-          🚪 Déconnexion
-        </button>
+            <div className="rounded-2xl bg-white/7 border border-white/10 p-3">
+              <div className="text-2xl font-black">2</div>
+              <div className="text-xs text-white/60">1er Français</div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-white/70">
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
+              🎯 +1 pt si un coureur du top 3 est trouvé mais mal placé.
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
+              🔒 Après la deadline, les pronostics sont verrouillés.
+            </div>
+          </div>
+        </div>
+
+        {/* Profil + actions */}
+        <div className="rounded-3xl border border-white/10 bg-slate-950/35 p-5 flex flex-col justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-400/40 to-fuchsia-400/40 border border-white/15 flex items-center justify-center text-2xl">
+              🚴
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-xs text-white/50">Connecté</p>
+              <p className="text-xl font-black truncate">
+                {profile?.username || "Utilisateur"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3">
+            {profile?.role === "admin" && (
+              <button
+                onClick={() => router.push("/admin")}
+                className="px-4 py-2.5 rounded-2xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-300/20 transition font-semibold"
+              >
+                🛠 Admin
+              </button>
+            )}
+
+            <button
+              onClick={() => router.push("/settings")}
+              className="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 transition font-semibold"
+            >
+              ⚙️ Paramètres
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-300/20 transition font-semibold"
+            >
+              🚪 Déconnexion
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
