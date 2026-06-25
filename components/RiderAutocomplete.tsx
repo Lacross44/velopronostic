@@ -12,9 +12,10 @@ type Rider = {
   team_id?: string | null
   is_active?: boolean | null
   teams?: {
-    name: string
-    short_name?: string | null
-  }[] | null
+  name: string
+  short_name?: string | null
+  logo_url?: string | null
+            }[] | null
 }
 
 type RiderAutocompleteProps = {
@@ -81,7 +82,8 @@ export default function RiderAutocomplete({
   is_active,
   teams (
     name,
-    short_name
+    short_name,
+    logo_url
   )
 `)
         .ilike("full_name", `%${value.trim()}%`)
@@ -178,12 +180,29 @@ export default function RiderAutocomplete({
               onClick={() => handleSelect(rider)}
               className="w-full text-left px-4 py-3 hover:bg-white/10 transition border-b border-white/5"
             >
-              <div className="font-semibold text-white">{rider.full_name}</div>
-              <div className="text-xs text-white/60">
-                {rider.teams?.[0]?.short_name || rider.team || ""}
-                {rider.teams?.[0]?.name || rider.team || "Équipe inconnue"}
-                {rider.nationality ? ` • ${rider.nationality}` : ""}
-              </div>
+              <div className="flex items-center gap-3">
+
+  {rider.teams?.[0]?.logo_url && (
+    <img
+      src={rider.teams[0].logo_url}
+      alt={rider.teams[0].name}
+      className="h-9 w-9 object-contain rounded-lg bg-white/10 p-1 shrink-0"
+    />
+  )}
+
+  <div className="min-w-0">
+
+    <div className="font-semibold truncate">
+      {rider.full_name}
+    </div>
+
+    <div className="text-xs text-white/60 truncate">
+      {rider.teams?.[0]?.name || rider.team || ""}
+    </div>
+
+  </div>
+
+</div>
             </button>
           ))}
         </div>

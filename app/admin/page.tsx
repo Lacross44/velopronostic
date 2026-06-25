@@ -49,6 +49,7 @@ type Team = {
   name: string
   short_name?: string | null
   country?: string | null
+  logo_url?: string | null
   is_active?: boolean | null
   riders?: {
     id: string
@@ -81,6 +82,7 @@ const [editingTeamId, setEditingTeamId] = useState("")
 const [editTeamName, setEditTeamName] = useState("")
 const [editTeamShortName, setEditTeamShortName] = useState("")
 const [editTeamCountry, setEditTeamCountry] = useState("")
+const [teamLogoFile, setTeamLogoFile] = useState<File | null>(null)
 
 const [editingRiderId, setEditingRiderId] = useState("")
 const [editRiderName, setEditRiderName] = useState("")
@@ -378,10 +380,33 @@ async function createTeam() {
     return
   }
 
+  let logoUrl: string | null = null
+
+if (teamLogoFile) {
+  const ext = teamLogoFile.name.split(".").pop()
+  const fileName = `${Date.now()}.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from("team-logos")
+    .upload(fileName, teamLogoFile, { upsert: true })
+
+  if (uploadError) {
+    alert("Erreur upload logo équipe : " + uploadError.message)
+    return
+  }
+
+  const { data } = supabase.storage
+    .from("team-logos")
+    .getPublicUrl(fileName)
+
+  logoUrl = data.publicUrl
+}
+
   const { error } = await supabase.from("teams").insert({
     name: teamName.trim(),
     short_name: teamShortName.trim() || null,
     country: teamCountry.trim() || null,
+    logo_url: logoUrl,
     is_active: true,
   })
 
@@ -394,6 +419,7 @@ async function createTeam() {
   setTeamName("")
   setTeamShortName("")
   setTeamCountry("")
+  setTeamLogoFile(null)
   await loadTeams()
 }
 
@@ -1417,6 +1443,13 @@ async function updateRider() {
           placeholder="Pays"
           className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
         />
+        
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setTeamLogoFile(e.target.files?.[0] || null)}
+          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+        />
 
         <button
           onClick={createTeam}
@@ -1490,6 +1523,13 @@ async function updateRider() {
             key={team.id}
             className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4"
           >
+          {team.logo_url && (
+  <img
+    src={team.logo_url}
+    alt={team.name}
+    className="h-10 w-10 object-contain rounded-lg bg-white/10 p-1"
+  />
+)}
             <div className="min-w-0">
               <div className="font-bold truncate">{team.name}</div>
               <div className="text-sm text-white/60">

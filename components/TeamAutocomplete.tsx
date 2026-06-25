@@ -8,6 +8,7 @@ type Team = {
   name: string
   short_name?: string | null
   country?: string | null
+  logo_url?: string | null
   is_active?: boolean | null
 }
 
@@ -62,7 +63,7 @@ export default function TeamAutocomplete({
 
       const { data, error } = await supabase
         .from("teams")
-        .select("id, name, short_name, country, is_active")
+        .select("id, name, short_name, country, logo_url, is_active")
         .ilike("name", `%${value.trim()}%`)
         .eq("is_active", true)
         .order("name", { ascending: true })
