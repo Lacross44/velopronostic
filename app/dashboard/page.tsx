@@ -1090,6 +1090,18 @@ third_team_id: thirdTeamId,
     )
   }
 
+  function getRankEmoji(index: number) {
+  if (index === 0) return "🥇"
+  if (index === 1) return "🥈"
+  if (index === 2) return "🥉"
+  return "🚴"
+}
+
+function getPlayerAvatar(username?: string | null) {
+  const name = username || "?"
+  return name.slice(0, 1).toUpperCase()
+}
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-fuchsia-950 text-white">
       <div className="max-w-6xl mx-auto p-6 md:p-10">
@@ -1499,75 +1511,98 @@ third_team_id: thirdTeamId,
 )}
 
                         {/* General ranking */}
-<div className="mt-8">
-  <h3 className="text-lg font-bold mb-3">🏆 Classement général</h3>
+{/* Classement général */}
+<div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-5 md:p-6 mb-8">
+  <div className="flex items-center justify-between gap-3 mb-5">
+    <div>
+      <h2 className="text-2xl font-black tracking-tight">
+        🏆 Classement général
+      </h2>
+      <p className="text-sm text-white/55 mt-1">
+        Le classement de ta ligue en temps réel.
+      </p>
+    </div>
+
+    {leaderboard.length > 0 && (
+      <div className="hidden md:block text-right">
+        <div className="text-xs text-white/50">Leader</div>
+        <div className="font-black text-yellow-200">
+          {leaderboard[0]?.username}
+        </div>
+      </div>
+    )}
+  </div>
 
   {leaderboard.length === 0 ? (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/70">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/60">
       Classement disponible après la saisie des résultats.
     </div>
   ) : (
-    <>
-      {leaderboard.length >= 3 && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-            <div className="text-2xl mb-1">🥈</div>
-            <div className="font-bold truncate">{leaderboard[1].username}</div>
-            <div className="text-white/70">{leaderboard[1].total_points} pts</div>
-          </div>
+    <div className="space-y-3">
+      {leaderboard.map((row: any, index: number) => {
+        const leaderPoints = leaderboard[0]?.total_points || 1
+        const percent =
+          leaderPoints > 0
+            ? Math.max(8, Math.round((row.total_points / leaderPoints) * 100))
+            : 8
 
-          <div className="rounded-2xl border border-yellow-300/20 bg-yellow-500/15 p-4 text-center shadow-lg">
-            <div className="text-3xl mb-1">🥇</div>
-            <div className="font-extrabold truncate">{leaderboard[0].username}</div>
-            <div className="text-white/80">{leaderboard[0].total_points} pts</div>
-            <div className="text-xs text-yellow-100/80 mt-1">Leader de la ligue</div>
-          </div>
+        const isTop1 = index === 0
+        const isTop3 = index < 3
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-            <div className="text-2xl mb-1">🥉</div>
-            <div className="font-bold truncate">{leaderboard[2].username}</div>
-            <div className="text-white/70">{leaderboard[2].total_points} pts</div>
-          </div>
-        </div>
-      )}
-
-      <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-        {leaderboard.map((player: any, index: number) => {
-          const isLast = index === leaderboard.length - 1
-          const isFirst = index === 0
-          const isMe = player.user_id === user?.id
-
-          return (
-            <div
-              key={player.user_id ?? index}
-              className={`flex justify-between items-center px-4 py-3 border-b border-white/10 ${
-                isMe ? "bg-indigo-500/10" : ""
-              }`}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="w-8 text-white/70">
-                  {isFirst ? "👑" : isLast ? "🛞" : `${index + 1}.`}
-                </span>
-
-                <span className={`truncate ${isMe ? "font-extrabold text-indigo-200" : "font-semibold"}`}>
-                  {player.username}
-                </span>
-
-                {isLast && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-red-500/15 border border-red-300/20 text-red-200">
-                    Lanterne rouge 🚲
-                  </span>
-                )}
+        return (
+          <div
+            key={row.user_id}
+            className={`rounded-2xl border p-4 transition hover:scale-[1.01] ${
+              isTop1
+                ? "bg-yellow-500/15 border-yellow-300/25"
+                : isTop3
+                ? "bg-white/8 border-white/15"
+                : "bg-white/5 border-white/10"
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-2xl w-8 text-center">
+                {getRankEmoji(index)}
               </div>
 
-              <span className="font-extrabold shrink-0">
-                {player.total_points} pts
-              </span>
+              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-400/40 to-fuchsia-400/40 border border-white/15 flex items-center justify-center font-black">
+                {getPlayerAvatar(row.username)}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-black truncate">
+                    {row.username || "Utilisateur"}
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-xl font-black">
+                      {row.total_points}
+                    </div>
+                    <div className="text-xs text-white/50">pts</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${
+                      isTop1
+                        ? "bg-yellow-300"
+                        : index === 1
+                        ? "bg-slate-300"
+                        : index === 2
+                        ? "bg-orange-300"
+                        : "bg-indigo-300"
+                    }`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </div>
             </div>
-          )
-        })}
-      </div>
-    </>
+          </div>
+        )
+      })}
+    </div>
   )}
 </div>
 
