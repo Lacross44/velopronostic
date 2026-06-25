@@ -83,6 +83,7 @@ const [editTeamName, setEditTeamName] = useState("")
 const [editTeamShortName, setEditTeamShortName] = useState("")
 const [editTeamCountry, setEditTeamCountry] = useState("")
 const [teamLogoFile, setTeamLogoFile] = useState<File | null>(null)
+const [editTeamLogoFile, setEditTeamLogoFile] = useState<File | null>(null)
 
 const [editingRiderId, setEditingRiderId] = useState("")
 const [editRiderName, setEditRiderName] = useState("")
@@ -428,18 +429,47 @@ function startEditTeam(team: Team) {
   setEditTeamName(team.name || "")
   setEditTeamShortName(team.short_name || "")
   setEditTeamCountry(team.country || "")
+  setEditTeamLogoFile(null)
 }
 
 async function updateTeam() {
   if (!editingTeamId) return
 
+  let logoUrl: string | null | undefined = undefined
+
+  if (editTeamLogoFile) {
+    const ext = editTeamLogoFile.name.split(".").pop()
+    const fileName = `${editingTeamId}-${Date.now()}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("team-logos")
+      .upload(fileName, editTeamLogoFile, { upsert: true })
+
+    if (uploadError) {
+      alert("Erreur upload logo équipe : " + uploadError.message)
+      return
+    }
+
+    const { data } = supabase.storage
+      .from("team-logos")
+      .getPublicUrl(fileName)
+
+    logoUrl = data.publicUrl
+  }
+
+  const payload: any = {
+    name: editTeamName.trim(),
+    short_name: editTeamShortName.trim() || null,
+    country: editTeamCountry.trim() || null,
+  }
+
+  if (logoUrl !== undefined) {
+    payload.logo_url = logoUrl
+  }
+
   const { error } = await supabase
     .from("teams")
-    .update({
-      name: editTeamName.trim(),
-      short_name: editTeamShortName.trim() || null,
-      country: editTeamCountry.trim() || null,
-    })
+    .update(payload)
     .eq("id", editingTeamId)
 
   if (error) {
@@ -448,10 +478,13 @@ async function updateTeam() {
   }
 
   alert("Équipe modifiée ✅")
+
   setEditingTeamId("")
   setEditTeamName("")
   setEditTeamShortName("")
   setEditTeamCountry("")
+  setEditTeamLogoFile(null)
+
   await loadTeams()
 }
 
@@ -1485,6 +1518,12 @@ async function updateRider() {
         placeholder="Pays"
         className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
       />
+<input
+  type="file"
+  accept="image/*"
+  onChange={(e) => setEditTeamLogoFile(e.target.files?.[0] || null)}
+  className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
+/>
 
       <div className="flex gap-3">
         <button
