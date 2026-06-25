@@ -1443,7 +1443,7 @@ async function updateRider() {
           placeholder="Pays"
           className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-white"
         />
-        
+        <div>logo de l'équipe :</div>
         <input
           type="file"
           accept="image/*"
