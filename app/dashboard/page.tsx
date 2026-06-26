@@ -1331,64 +1331,90 @@ function getPlayerAvatar(username?: string | null) {
 
         {/* Selected league */}
         {selectedLeague && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/20">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-extrabold">{selectedLeague.name}</h2>
-                {selectedLeague.code && (
-                  <p className="text-sm text-white/70 mt-1">
-                    Code ligue : <span className="font-bold text-white">{selectedLeague.code}</span>
-                  </p>
-                )}
-              </div>
+        <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-5 md:p-6">
+<div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+  <div className="min-w-0">
+    <div className="text-xs uppercase tracking-[0.22em] text-indigo-200/70 font-semibold">
+      Ligue sélectionnée
+    </div>
 
+    <h2 className="text-3xl md:text-4xl font-black tracking-tight mt-1 truncate">
+      🏆 {selectedLeague.name}
+    </h2>
 
-              <div className="flex flex-wrap gap-2">
-                {isOwner && selectedLeague.code && (
-                  <button
-                    onClick={shareLeagueCode}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition"
-                  >
-                    🔗 Partager le code
-                  </button>
-                )}
+    <div className="mt-4 flex flex-wrap gap-2">
+      <span
+        className={`text-xs px-3 py-1.5 rounded-full border font-semibold ${
+          selectedLeague.status === "active"
+            ? "bg-emerald-500/20 border-emerald-300/20 text-emerald-100"
+            : "bg-yellow-500/20 border-yellow-300/20 text-yellow-100"
+        }`}
+      >
+        {selectedLeague.status === "active" ? "✅ Ligue active" : "📝 Brouillon"}
+      </span>
 
-                {isOwner && selectedLeague.status === "draft" && (
-                  <>
-                    <button
-                      onClick={async () => {
-                        await loadAllRaces()
-                        setManageMode(true)
-                      }}
-                      className="px-4 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
-                    >
-                      ⚙️ Gérer les courses
-                    </button>
+      <button
+        onClick={() => setMembersOpen((v) => !v)}
+        className="text-xs px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 transition font-semibold"
+      >
+        👥 {members.length} joueur(s) {membersOpen ? "▲" : "▼"}
+      </button>
 
-                    <button
-                      onClick={launchLeague}
-                      className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-300/20 transition font-semibold"
-                    >
-                      ✅ Lancer la ligue
-                    </button>
-                  </>
-                )}
-                {isOwner && (
-  <button
-    onClick={deleteLeague}
-    className="px-4 py-2 rounded-xl bg-red-500/30 hover:bg-red-500/45 border border-red-300/20 transition"
-  >
-    🗑️ Supprimer la ligue
-  </button>
-)}
+      {selectedLeague.code && (
+        <span className="text-xs px-3 py-1.5 rounded-full bg-sky-500/15 border border-sky-300/20 text-sky-100 font-semibold">
+          🔑 Code : {selectedLeague.code}
+        </span>
+      )}
+    </div>
+  </div>
 
-                {isOwner && selectedLeague.status === "active" && (
-                  <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-300/20 text-emerald-100">
-                    ✅ Ligue active (courses verrouillées)
-                  </div>
-                )}
-              </div>
-            </div>
+  <div className="flex flex-wrap gap-2 xl:justify-end">
+    {isOwner && selectedLeague.code && (
+      <button
+        onClick={shareLeagueCode}
+        className="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition font-semibold"
+      >
+        🔗 Partager
+      </button>
+    )}
+
+    {isOwner && selectedLeague.status === "draft" && (
+      <>
+        <button
+          onClick={async () => {
+            await loadAllRaces()
+            setManageMode(true)
+          }}
+          className="px-4 py-2.5 rounded-2xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition font-semibold"
+        >
+          ⚙️ Gérer les courses
+        </button>
+
+        <button
+          onClick={launchLeague}
+          className="px-4 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-300/20 transition font-bold"
+        >
+          ✅ Lancer
+        </button>
+      </>
+    )}
+
+    {isOwner && selectedLeague.status === "active" && (
+      <div className="px-4 py-2.5 rounded-2xl bg-emerald-500/20 border border-emerald-300/20 text-emerald-100 font-semibold">
+        🔒 Courses verrouillées
+      </div>
+    )}
+
+    {isOwner && (
+      <button
+        onClick={deleteLeague}
+        className="px-4 py-2.5 rounded-2xl bg-red-500/25 hover:bg-red-500/40 border border-red-300/20 transition font-semibold"
+      >
+        🗑️ Supprimer
+      </button>
+    )}
+  </div>
+</div>
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
   <button
     onClick={() => setMembersOpen((v) => !v)}
