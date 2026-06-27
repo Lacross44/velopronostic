@@ -8,6 +8,7 @@ import TeamAutocomplete from "@/components/TeamAutocomplete"
 import {
   formatRaceDate,
   formatRaceTime,
+  getCountdown,
 } from "@/lib/date"
 
 type League = {
@@ -301,6 +302,13 @@ function formatDateFr(dateString?: string | null) {
 
   return `${day}/${month}/${year} ${timePart}`
 }
+
+function getMyPredictionForRace(raceId: string) {
+  return myPredictions.find(
+    (p) => String(p.race_id) === String(raceId)
+  )
+}
+
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -1717,6 +1725,8 @@ function getPlayerAvatar(username?: string | null) {
     : nextRace?.id === race.id
 
   const raceTypeInfo = getRaceTypeInfo(race.race_type)
+  const myPrediction = getMyPredictionForRace(race.id)
+  const countdown = getCountdown(race.pronostic_deadline)
 
   return (
     <div
@@ -1749,19 +1759,23 @@ function getPlayerAvatar(username?: string | null) {
                 </span>
               )}
 
-              {canPronosticate ? (
-                <span className="text-xs px-3 py-1 rounded-full bg-orange-500/15 border border-orange-300/20 text-orange-100 font-semibold">
-                  🟠 À pronostiquer
-                </span>
-              ) : isFinished ? (
-                <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-300/20 text-emerald-100 font-semibold">
-                  🏆 Résultats / pronos
-                </span>
-              ) : (
-                <span className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/55 font-semibold">
-                  🔒 Pas encore
-                </span>
-              )}
+              {isFinished ? (
+  <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-300/20 text-emerald-100 font-semibold">
+    🏆 Résultat / pronos
+  </span>
+) : myPrediction ? (
+  <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-300/20 text-emerald-100 font-semibold">
+    🟢 Pronostic enregistré
+  </span>
+) : canPronosticate ? (
+  <span className="text-xs px-3 py-1 rounded-full bg-orange-500/15 border border-orange-300/20 text-orange-100 font-semibold">
+    🟠 À pronostiquer
+  </span>
+) : (
+  <span className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/55 font-semibold">
+    🔒 Pas encore
+  </span>
+)}
             </div>
 
             <div className="text-lg font-black truncate">
@@ -1775,6 +1789,11 @@ function getPlayerAvatar(username?: string | null) {
               <div>
                 ⏰ Deadline :{" "}
                 {race.pronostic_deadline ? formatDateFr(race.pronostic_deadline) : "—"}
+                {countdown && canPronosticate && !myPrediction && (
+  <div className="text-xs text-orange-200 mt-1">
+    ⏳ Clôture dans {countdown}
+  </div>
+)}
               </div>
             </div>
           </div>
@@ -1786,7 +1805,7 @@ function getPlayerAvatar(username?: string | null) {
               onClick={() => openProno(race)}
               className="px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-bold"
             >
-              🏁 Pronostiquer
+            {myPrediction ? "✏️ Modifier mon prono" : "🏁 Pronostiquer"}
             </button>
           ) : isFinished ? (
             <>
