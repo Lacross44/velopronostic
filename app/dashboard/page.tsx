@@ -1607,68 +1607,93 @@ function getPlayerAvatar(username?: string | null) {
   ) : (
     <div className="space-y-3">
       {leaderboard.map((row: any, index: number) => {
-        const leaderPoints = leaderboard[0]?.total_points || 1
-        const percent =
-          leaderPoints > 0
-            ? Math.max(8, Math.round((row.total_points / leaderPoints) * 100))
-            : 8
+  const leaderPoints = leaderboard[0]?.total_points || 1
+  const percent =
+    leaderPoints > 0
+      ? Math.max(8, Math.round((row.total_points / leaderPoints) * 100))
+      : 8
 
-        const isTop1 = index === 0
-        const isTop3 = index < 3
+  const isTop1 = index === 0
+  const isTop2 = index === 1
+  const isTop3 = index === 2
 
-        return (
-          <div
-            key={row.user_id}
-            className={`rounded-2xl border p-4 transition hover:scale-[1.01] ${
-              isTop1
-                ? "bg-yellow-500/15 border-yellow-300/25"
-                : isTop3
-                ? "bg-white/8 border-white/15"
-                : "bg-white/5 border-white/10"
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className="text-2xl w-8 text-center">
-                {getRankEmoji(index)}
+  return (
+    <button
+      key={row.user_id}
+      onClick={() => {
+        // futur profil joueur
+        // router.push(`/profile/${row.user_id}`)
+      }}
+      className={`w-full text-left rounded-[1.5rem] border p-4 transition hover:scale-[1.01] hover:bg-white/10 ${
+        isTop1
+          ? "bg-yellow-500/15 border-yellow-300/30 shadow-lg shadow-yellow-950/20"
+          : isTop2
+          ? "bg-slate-300/10 border-slate-200/20"
+          : isTop3
+          ? "bg-orange-500/10 border-orange-300/20"
+          : "bg-white/5 border-white/10"
+      }`}
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-10 text-center text-3xl">
+          {getRankEmoji(index)}
+        </div>
+
+        <div
+          className={`h-12 w-12 rounded-2xl border flex items-center justify-center font-black text-lg shrink-0 ${
+            isTop1
+              ? "bg-yellow-300/20 border-yellow-200/30 text-yellow-100"
+              : isTop2
+              ? "bg-slate-200/15 border-slate-200/20"
+              : isTop3
+              ? "bg-orange-300/15 border-orange-200/20"
+              : "bg-gradient-to-br from-indigo-400/35 to-fuchsia-400/35 border-white/15"
+          }`}
+        >
+          {getPlayerAvatar(row.username)}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-black truncate text-lg">
+                {row.username || "Utilisateur"}
               </div>
 
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-400/40 to-fuchsia-400/40 border border-white/15 flex items-center justify-center font-black">
-                {getPlayerAvatar(row.username)}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="font-black truncate">
-                    {row.username || "Utilisateur"}
-                  </div>
-
-                  <div className="text-right shrink-0">
-                    <div className="text-xl font-black">
-                      {row.total_points}
-                    </div>
-                    <div className="text-xs text-white/50">pts</div>
-                  </div>
-                </div>
-
-                <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${
-                      isTop1
-                        ? "bg-yellow-300"
-                        : index === 1
-                        ? "bg-slate-300"
-                        : index === 2
-                        ? "bg-orange-300"
-                        : "bg-indigo-300"
-                    }`}
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
+              <div className="text-xs text-white/50 mt-0.5">
+                {index === 0
+                  ? "Leader de la ligue"
+                  : `${row.total_points - leaderboard[0]?.total_points} pts du leader`}
               </div>
             </div>
+
+            <div className="text-right shrink-0">
+              <div className="text-2xl font-black">
+                {row.total_points}
+              </div>
+              <div className="text-xs text-white/50">points</div>
+            </div>
           </div>
-        )
-      })}
+
+          <div className="mt-3 h-2.5 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${
+                isTop1
+                  ? "bg-yellow-300"
+                  : isTop2
+                  ? "bg-slate-300"
+                  : isTop3
+                  ? "bg-orange-300"
+                  : "bg-indigo-300"
+              }`}
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </button>
+  )
+})}
     </div>
   )}
 </div>
