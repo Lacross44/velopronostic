@@ -1566,7 +1566,7 @@ async function updateRider() {
   <img
     src={team.logo_url}
     alt={team.name}
-    className="h-10 w-10 object-contain rounded-lg bg-white/10 p-1"
+    className="h-10 w-20 object-contain rounded-lg bg-white/10 p-1"
   />
 )}
             <div className="min-w-0">
