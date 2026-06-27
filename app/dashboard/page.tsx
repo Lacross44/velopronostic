@@ -1492,38 +1492,6 @@ function getPlayerAvatar(username?: string | null) {
     </div>
   )}
 </div>
-<div className="mt-6">
-  <h3 className="text-lg font-bold mb-3">🔥 À la une</h3>
-
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    {/* Dernière course terminée */}
-    <PriorityRaceCard
-      title="🏁 Dernière course terminée"
-      race={lastFinishedRaceWithResults}
-      actionLabel="Résultats"
-      onClick={(race: any) => openRaceRankingModal(race)}
-      emptyText="Aucun résultat encore saisi."
-    />
-
-    {/* Course en cours */}
-    <PriorityRaceCard
-      title="⏳ Course en attente de résultat"
-      race={currentRaceWaitingResults}
-      actionLabel="Pronostics"
-      onClick={(race: any) => openProno(race)}
-      emptyText="Aucune course en attente de résultat."
-    />
-
-    {/* Prochaine course */}
-    <PriorityRaceCard
-      title="🔮 Prochaine course"
-      race={nextRace}
-      actionLabel="Pronostiquer"
-      onClick={(race: any) => openProno(race)}
-      emptyText="Aucune prochaine course."
-    />
-  </div>
-</div>
 {selectedLeague?.race_group_id && (
   <div className="mt-6">
   <div className="rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-4 mb-4">
@@ -1695,6 +1663,38 @@ function getPlayerAvatar(username?: string | null) {
   </div>
 )}
             <div>
+              <div className="mt-6">
+  <h3 className="text-lg font-bold mb-3">🔥 À la une</h3>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Dernière course terminée */}
+            <PriorityRaceCard
+              title="🏁 Dernière course terminée"
+              race={lastFinishedRaceWithResults}
+              actionLabel="Résultats"
+              onClick={(race: any) => openRaceRankingModal(race)}
+              emptyText="Aucun résultat encore saisi."
+            />
+
+            {/* Course en cours */}
+            <PriorityRaceCard
+              title="⏳ Course en attente de résultat"
+              race={currentRaceWaitingResults}
+              actionLabel="Pronostics"
+              onClick={(race: any) => openProno(race)}
+              emptyText="Aucune course en attente de résultat."
+            />
+
+            {/* Prochaine course */}
+            <PriorityRaceCard
+              title="🔮 Prochaine course"
+              race={nextRace}
+              actionLabel="Pronostiquer"
+              onClick={(race: any) => openProno(race)}
+              emptyText="Aucune prochaine course."
+            />
+          </div>
+</div>
             {/* Courses list */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-3">
