@@ -75,6 +75,7 @@ const [gcLocked, setGcLocked] = useState(false)
 const [gcDeadline, setGcDeadline] = useState<string | null>(null)
 const [gcPredictions, setGcPredictions] = useState<any[]>([])
 const [gcPredictionsOpen, setGcPredictionsOpen] = useState(false)
+const [myPredictions, setMyPredictions] = useState<any[]>([])
 
   // Manage races modal/section
   const [manageMode, setManageMode] = useState(false)
@@ -340,7 +341,8 @@ async function loadLeagueRaces(leagueId: string) {
         race_date,
         pronostic_deadline,
         logo_url,
-        race_type
+        race_type,
+        stage_number
       )
     `)
     .eq("league_id", leagueId)
@@ -348,6 +350,7 @@ async function loadLeagueRaces(leagueId: string) {
   if (error) {
     console.error(error)
     setRaces([])
+    setMyPredictions([])
     return
   }
 
@@ -355,6 +358,7 @@ async function loadLeagueRaces(leagueId: string) {
   setRaces(leagueRaces)
 
   await loadRaceResultsStatus(leagueRaces.map((r: any) => r.id))
+  await loadMyPredictions(leagueRaces)
 }
 
   async function loadAllRaces() {
@@ -808,6 +812,29 @@ async function saveGcPrediction() {
   setGcOpen(false)
 }
 
+async function loadMyPredictions(races: Race[]) {
+  if (!user || races.length === 0) {
+    setMyPredictions([])
+    return
+  }
+
+  const raceIds = races.map((r) => r.id)
+
+  const { data, error } = await supabase
+    .from("predictions")
+    .select("id, race_id, first, second, third, first_french")
+    .eq("user_id", user.id)
+    .in("race_id", raceIds)
+
+  if (error) {
+    console.error(error)
+    setMyPredictions([])
+    return
+  }
+
+  setMyPredictions(data || [])
+}
+
 async function loadGcDeadline(league: any) {
   if (!league?.race_group_id) {
     setGcLocked(false)
@@ -1060,6 +1087,7 @@ third_team_id: thirdTeamId,
     }
 
     await openProno(pronoRace)
+    await loadMyPredictions(races)
   }
 
   // ----- UI states -----
@@ -1545,10 +1573,10 @@ function getPlayerAvatar(username?: string | null) {
 {/* Classement général */}
 <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-5 md:p-6 mb-8">
   <div className="flex items-center justify-between gap-3 mb-5">
-    <div>
+    <div><p>
       <h2 className="text-2xl font-black tracking-tight">
         🏆 Classement général
-      </h2>
+      </h2></p>
       <p className="text-sm text-white/55 mt-1">
         Le classement de ta ligue en temps réel.
       </p>
