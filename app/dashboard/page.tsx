@@ -1618,10 +1618,14 @@ function getPlayerAvatar(username?: string | null) {
       : 6
 
   return (
-    <div
-      key={row.user_id}
-      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-    >
+    <button
+  key={row.user_id}
+  onClick={() => {
+    // futur profil joueur
+    // router.push(`/profile/${row.user_id}`)
+  }}
+  className="w-full text-left rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition"
+>
       <div className="flex items-center gap-3">
         <div className="w-8 text-xl text-center">{getRankEmoji(index)}</div>
 
@@ -1656,7 +1660,7 @@ function getPlayerAvatar(username?: string | null) {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   )
 })}
     </div>
