@@ -1578,8 +1578,12 @@ function getPlayerAvatar(username?: string | null) {
 )}
 
                         {/* General ranking */}
+ <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-6 items-start"> 
+  <div className="xl:sticky xl:top-6">
+    {/* ton bloc classement ici */}
+                    
 {/* Classement général */}
-<div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-5 md:p-6 mb-8">
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-5 md:p-6 mb-8">
   <div className="flex items-center justify-between gap-3 mb-5">
     <div><p>
       <h2 className="text-2xl font-black tracking-tight">
@@ -1657,7 +1661,8 @@ function getPlayerAvatar(username?: string | null) {
 })}
     </div>
   )}
-</div>
+    </div>
+  </div>  
 
             {/* Race ranking */}
 {raceRankingRaceId && (
@@ -1685,6 +1690,7 @@ function getPlayerAvatar(username?: string | null) {
     )}
   </div>
 )}
+            <div>
             {/* Courses list */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-3">
@@ -1822,7 +1828,8 @@ function getPlayerAvatar(username?: string | null) {
                 </div>
               )}
             </div>
-
+            </div>
+</div>
             {/* Manage courses */}
             {manageMode && (
               <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
