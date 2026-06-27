@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
 import RiderAutocomplete from "@/components/RiderAutocomplete"
 import TeamAutocomplete from "@/components/TeamAutocomplete"
+import {
+  formatRaceDate,
+  formatRaceTime,
+} from "@/lib/date"
 
 type League = {
   id: string
@@ -2218,44 +2222,127 @@ function PriorityRaceCard({
   onClick: (race: any) => void
   emptyText: string
 }) {
+
+  function getRaceIcon(type?: string) {
+    switch (type) {
+      case "itt":
+        return "⏱"
+      case "ttt":
+        return "👥"
+      case "mountain":
+        return "⛰️"
+      case "hilly":
+        return "🌄"
+      case "gravel":
+        return "🪨"
+      default:
+        return "🚴"
+    }
+  }
+
+  function getRaceLabel(type?: string) {
+    switch (type) {
+      case "itt":
+        return "CLM Individuel"
+      case "ttt":
+        return "CLM Équipes"
+      case "mountain":
+        return "Montagne"
+      case "hilly":
+        return "Accidentée"
+      case "gravel":
+        return "Gravel"
+      default:
+        return "Route"
+    }
+  }
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <h4 className="font-bold mb-3">{title}</h4>
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-xl p-5 hover:scale-[1.01] transition">
+
+      <div className="flex items-center justify-between mb-4">
+
+        <div className="font-black text-lg">
+          {title}
+        </div>
+
+        {race?.race_type && (
+          <div className="text-xs px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-300/20">
+            {getRaceIcon(race.race_type)} {getRaceLabel(race.race_type)}
+          </div>
+        )}
+
+      </div>
 
       {!race ? (
-        <div className="text-white/60 text-sm">{emptyText}</div>
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 text-white/60 text-center">
+          {emptyText}
+        </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {race.logo_url && (
-              <img
-                src={race.logo_url}
-                alt={race.name}
-                className="h-12 w-16 object-contain shrink-0"
-              />
-            )}
+        <>
 
-            <div className="min-w-0">
-              <div className="font-semibold truncate">{race.name}</div>
-              <div className="text-sm text-white/60">
-                {race.race_date
-                  ? new Date(race.race_date).toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
-                  : "—"}
-              </div>
+          <div className="flex gap-4">
+
+            <div className="shrink-0">
+              {race.logo_url ? (
+                <img
+                  src={race.logo_url}
+                  alt={race.name}
+                  className="h-20 w-20 rounded-2xl object-contain bg-white/5 p-2"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-fuchsia-500/25 flex items-center justify-center text-3xl">
+                  🚴
+                </div>
+              )}
             </div>
+
+            <div className="flex-1 min-w-0">
+
+              <div className="font-black text-lg leading-tight">
+                {race.name}
+              </div>
+
+              {race.stage_number && (
+                <div className="text-sm text-yellow-300 mt-1">
+                  Étape {race.stage_number}
+                </div>
+              )}
+
+              <div className="mt-4 space-y-2 text-sm">
+
+                <div>
+                  📅{" "}
+                  {race.race_date
+                    ? formatRaceDate(race.race_date)
+                    : "—"}
+                </div>
+
+                <div>
+                  ⏰{" "}
+                  {race.race_date
+                    ? formatRaceTime(race.race_date)
+                    : "--:--"}
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
 
-          <button
-            onClick={() => onClick(race)}
-            className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-semibold"
-          >
-            {actionLabel}
-          </button>
-        </div>
+          <div className="mt-5">
+
+            <button
+              onClick={() => onClick(race)}
+              className="w-full py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-bold"
+            >
+              {actionLabel}
+            </button>
+
+          </div>
+
+        </>
       )}
     </div>
   )
