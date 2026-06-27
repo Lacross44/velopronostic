@@ -28,6 +28,7 @@ type Race = {
   pronostic_deadline?: string | null
   logo_url?: string | null
   race_type?: string | null
+  stage_number?: number | null
 }
 
 export default function DashboardPage() {
@@ -1679,73 +1680,112 @@ function getPlayerAvatar(username?: string | null) {
                 <p className="text-white/70">Aucune course active pour cette ligue.</p>
               ) : (
                 <div className="space-y-2">
-                  {racesToDisplay.map((race) => {
-                    const deadline = toDate(race.pronostic_deadline)
-                    const isFinished = deadline ? deadline <= new Date() : false
+                 {racesToDisplay.map((race) => {
+  const deadline = toDate(race.pronostic_deadline)
+  const isFinished = deadline ? deadline <= new Date() : false
 
-                    const canPronosticate = selectedLeague?.race_group_id
-                      ? !isFinished
-                      : nextRace?.id === race.id
-                    const raceTypeInfo = getRaceTypeInfo(race.race_type)
+  const canPronosticate = selectedLeague?.race_group_id
+    ? !isFinished
+    : nextRace?.id === race.id
 
-                    return (
-                      <div
-                        key={race.id}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {race.logo_url && (
-                            <img src={race.logo_url} alt={race.name} className="h-9 w-14 object-contain" />
-                          )}
-                          <div className="min-w-0">
-                            <div className="font-semibold truncate"> 
-                               <span>{raceTypeInfo.icon}</span>
-  <span>{race.name}</span></div>
-                            <div className="text-sm text-white/60">
-                              {race.race_date ? formatDateFr(race.race_date) : "—"}
-                              {" • "}
-                              Deadline :{" "}
-                              {race.pronostic_deadline ? formatDateFr(race.pronostic_deadline) : "—"}
-                            </div>
-                            <div className="text-xs text-white/50">
-                            {raceTypeInfo.label}
-                            </div>
-                          </div>
-                        </div>
+  const raceTypeInfo = getRaceTypeInfo(race.race_type)
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          {canPronosticate ? (
-  <button
-    onClick={() => openProno(race)}
-    className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition"
-  >
-    🏁 Pronostiquer
-  </button>
-) : isFinished ? (
-  <>
-    <button
-      onClick={() => openRaceRankingModal(race)}
-      className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition"
+  return (
+    <div
+      key={race.id}
+      className="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 md:p-5 shadow-lg shadow-black/20 hover:bg-white/[0.09] transition"
     >
-      🏆 Classement
-    </button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
+          {race.logo_url ? (
+            <img
+              src={race.logo_url}
+              alt={race.name}
+              className="h-16 w-16 rounded-2xl object-contain bg-white/5 p-2 shrink-0"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-fuchsia-500/25 flex items-center justify-center text-3xl shrink-0">
+              {raceTypeInfo.icon}
+            </div>
+          )}
 
-    <button
-      onClick={() => openProno(race)}
-      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition p-6 flex flex-col max-h-[85vh]"
-    >
-      👀 Pronos
-    </button>
-  </>
-) : (
-  <span className="text-xs px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60">
-    🔒 Pas encore
-  </span>
-)}
-                        </div>
-                      </div>
-                    )
-                  })}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-300/20 text-indigo-100 font-semibold">
+                {raceTypeInfo.icon} {raceTypeInfo.label}
+              </span>
+
+              {race.stage_number && (
+                <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/15 border border-yellow-300/20 text-yellow-100 font-semibold">
+                  Étape {race.stage_number}
+                </span>
+              )}
+
+              {canPronosticate ? (
+                <span className="text-xs px-3 py-1 rounded-full bg-orange-500/15 border border-orange-300/20 text-orange-100 font-semibold">
+                  🟠 À pronostiquer
+                </span>
+              ) : isFinished ? (
+                <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-300/20 text-emerald-100 font-semibold">
+                  🏆 Résultats / pronos
+                </span>
+              ) : (
+                <span className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/55 font-semibold">
+                  🔒 Pas encore
+                </span>
+              )}
+            </div>
+
+            <div className="text-lg font-black truncate">
+              {race.name}
+            </div>
+
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-white/65">
+              <div>
+                📅 {race.race_date ? formatDateFr(race.race_date) : "—"}
+              </div>
+              <div>
+                ⏰ Deadline :{" "}
+                {race.pronostic_deadline ? formatDateFr(race.pronostic_deadline) : "—"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row md:flex-col xl:flex-row gap-2 shrink-0">
+          {canPronosticate ? (
+            <button
+              onClick={() => openProno(race)}
+              className="px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-bold"
+            >
+              🏁 Pronostiquer
+            </button>
+          ) : isFinished ? (
+            <>
+              <button
+                onClick={() => openRaceRankingModal(race)}
+                className="px-4 py-3 rounded-2xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition font-bold"
+              >
+                🏆 Classement
+              </button>
+
+              <button
+                onClick={() => openProno(race)}
+                className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition font-semibold"
+              >
+                👀 Pronos
+              </button>
+            </>
+          ) : (
+            <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/55 text-sm font-semibold">
+              🔒 Pas encore ouvert
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})}
                 </div>
               )}
             </div>
