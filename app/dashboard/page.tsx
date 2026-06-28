@@ -8,8 +8,10 @@ import TeamAutocomplete from "@/components/TeamAutocomplete"
 import {
   formatRaceDate,
   formatRaceTime,
+  formatRaceDateTime,
   getCountdown,
 } from "@/lib/date"
+import { getRaceTypeInfo } from "@/lib/race"
 
 type League = {
   id: string
@@ -1664,11 +1666,12 @@ function getPlayerAvatar(username?: string | null) {
 )}
             <div>
               <div className="mt-6">
-  <h3 className="text-lg font-bold mb-3">🔥 À la une</h3>
+          <h3 className="text-lg font-bold mb-3">🔥 À la une</h3>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Dernière course terminée */}
             <PriorityRaceCard
+              variant="last"
               title="🏁 Dernière course terminée"
               race={lastFinishedRaceWithResults}
               actionLabel="Résultats"
@@ -1678,6 +1681,7 @@ function getPlayerAvatar(username?: string | null) {
 
             {/* Course en cours */}
             <PriorityRaceCard
+              variant="waiting"
               title="⏳ Course en attente de résultat"
               race={currentRaceWaitingResults}
               actionLabel="Pronostics"
@@ -1687,14 +1691,15 @@ function getPlayerAvatar(username?: string | null) {
 
             {/* Prochaine course */}
             <PriorityRaceCard
+              variant="next"
               title="🔮 Prochaine course"
               race={nextRace}
               actionLabel="Pronostiquer"
               onClick={(race: any) => openProno(race)}
               emptyText="Aucune prochaine course."
             />
-          </div>
-</div>
+                  </div>
+              </div>
             {/* Courses list */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-3">
@@ -2294,138 +2299,135 @@ function getPlayerAvatar(username?: string | null) {
 }
 
 function PriorityRaceCard({
+  variant,
   title,
   race,
   actionLabel,
   onClick,
   emptyText,
 }: {
+  variant: "last" | "waiting" | "next"
   title: string
   race: any
   actionLabel: string
   onClick: (race: any) => void
   emptyText: string
 }) {
+  const accent =
+    variant === "last"
+      ? "border-emerald-300/30 bg-emerald-500/10"
+      : variant === "waiting"
+      ? "border-orange-300/30 bg-orange-500/10"
+      : "border-indigo-300/30 bg-indigo-500/10"
 
-  function getRaceIcon(type?: string) {
-    switch (type) {
-      case "itt":
-        return "⏱"
-      case "ttt":
-        return "👥"
-      case "mountain":
-        return "⛰️"
-      case "hilly":
-        return "🌄"
-      case "gravel":
-        return "🪨"
-      default:
-        return "🚴"
-    }
-  }
+  const badge =
+    variant === "last"
+      ? "🏁 TERMINÉE"
+      : variant === "waiting"
+      ? "⏳ EN ATTENTE"
+      : "🔮 PROCHAINE"
 
-  function getRaceLabel(type?: string) {
-    switch (type) {
-      case "itt":
-        return "CLM Individuel"
-      case "ttt":
-        return "CLM Équipes"
-      case "mountain":
-        return "Montagne"
-      case "hilly":
-        return "Accidentée"
-      case "gravel":
-        return "Gravel"
-      default:
-        return "Route"
-    }
-  }
+  const status =
+    variant === "last"
+      ? "🏆 Résultats disponibles"
+      : variant === "waiting"
+      ? "🔒 Pronostics verrouillés"
+      : "🟠 Pronostic ouvert"
+
+  const raceTypeInfo = race ? getRaceTypeInfo(race.race_type) : null
+  const countdown = race ? getCountdown(race.pronostic_deadline) : null
 
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-xl p-5 hover:scale-[1.01] transition">
+    <div
+      className={`rounded-[1.5rem] border ${accent} backdrop-blur-xl shadow-lg shadow-black/20 p-4 hover:scale-[1.01] transition`}
+    >
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-black tracking-wide">
+          {badge}
+        </span>
 
-      <div className="flex items-center justify-between mb-4">
-
-        <div className="font-black text-lg">
-          {title}
-        </div>
-
-        {race?.race_type && (
-          <div className="text-xs px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-300/20">
-            {getRaceIcon(race.race_type)} {getRaceLabel(race.race_type)}
-          </div>
+        {raceTypeInfo && (
+          <span className="text-[11px] px-2.5 py-1 rounded-full bg-slate-950/30 border border-white/10 text-white/80 font-semibold">
+            {raceTypeInfo.icon} {raceTypeInfo.label}
+          </span>
         )}
-
       </div>
 
       {!race ? (
-        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 text-white/60 text-center">
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-4 text-white/60 text-sm">
           {emptyText}
         </div>
       ) : (
         <>
+          <div className="flex items-center gap-3 min-w-0">
+            {race.logo_url ? (
+              <img
+                src={race.logo_url}
+                alt={race.name}
+                className="h-12 w-12 rounded-2xl object-contain bg-white/10 p-1.5 shrink-0"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-2xl shrink-0">
+                {raceTypeInfo?.icon || "🚴"}
+              </div>
+            )}
 
-          <div className="flex gap-4">
-
-            <div className="shrink-0">
-              {race.logo_url ? (
-                <img
-                  src={race.logo_url}
-                  alt={race.name}
-                  className="h-20 w-20 rounded-2xl object-contain bg-white/5 p-2"
-                />
-              ) : (
-                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-fuchsia-500/25 flex items-center justify-center text-3xl">
-                  🚴
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-
-              <div className="font-black text-lg leading-tight">
+            <div className="min-w-0">
+              <div className="font-black truncate leading-tight">
                 {race.name}
               </div>
 
               {race.stage_number && (
-                <div className="text-sm text-yellow-300 mt-1">
+                <div className="text-xs text-yellow-200 mt-0.5">
                   Étape {race.stage_number}
                 </div>
               )}
+            </div>
+          </div>
 
-              <div className="mt-4 space-y-2 text-sm">
+          <div className="mt-3 space-y-1.5 text-xs text-white/70">
+            <div>{status}</div>
+
+            {variant === "next" && (
+              <>
+                <div>
+                  📅 {race.race_date ? formatRaceDate(race.race_date) : "—"}
+                </div>
 
                 <div>
-                  📅{" "}
-                  {race.race_date
-                    ? formatRaceDate(race.race_date)
+                  ⏰ Deadline :{" "}
+                  {race.pronostic_deadline
+                    ? formatRaceDateTime(race.pronostic_deadline)
                     : "—"}
                 </div>
 
-                <div>
-                  ⏰{" "}
-                  {race.race_date
-                    ? formatRaceTime(race.race_date)
-                    : "--:--"}
-                </div>
+                {countdown && (
+                  <div className="text-orange-200 font-semibold">
+                    ⏳ Clôture dans {countdown}
+                  </div>
+                )}
+              </>
+            )}
 
+            {variant === "waiting" && (
+              <div className="text-orange-100">
+                Résultat à saisir pour calculer les points.
               </div>
+            )}
 
-            </div>
-
+            {variant === "last" && (
+              <div className="text-emerald-100">
+                Classement de la course disponible.
+              </div>
+            )}
           </div>
 
-          <div className="mt-5">
-
-            <button
-              onClick={() => onClick(race)}
-              className="w-full py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-bold"
-            >
-              {actionLabel}
-            </button>
-
-          </div>
-
+          <button
+            onClick={() => onClick(race)}
+            className="mt-3 w-full px-3 py-2 rounded-2xl bg-white/12 hover:bg-white/20 border border-white/10 transition font-bold text-sm"
+          >
+            {actionLabel} →
+          </button>
         </>
       )}
     </div>
