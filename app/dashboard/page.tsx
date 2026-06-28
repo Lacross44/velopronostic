@@ -2392,25 +2392,25 @@ function PriorityRaceCard({
             <div>{status}</div>
 
             {variant === "next" && (
-              <>
-                <div>
-                  📅 {race.race_date ? formatRaceDate(race.race_date) : "—"}
-                </div>
+  <div className="grid grid-cols-1 gap-1">
+    <div className="truncate">
+      📅 {race.race_date ? formatRaceDate(race.race_date) : "—"}
+    </div>
 
-                <div>
-                  ⏰ Deadline :{" "}
-                  {race.pronostic_deadline
-                    ? formatRaceDateTime(race.pronostic_deadline)
-                    : "—"}
-                </div>
+    <div className="truncate">
+      ⏰ Deadline :{" "}
+      {race.pronostic_deadline
+        ? formatRaceTime(race.pronostic_deadline)
+        : "—"}
+    </div>
 
-                {countdown && (
-                  <div className="text-orange-200 font-semibold">
-                    ⏳ Clôture dans {countdown}
-                  </div>
-                )}
-              </>
-            )}
+    {countdown && (
+      <div className="truncate text-orange-200 font-semibold">
+        ⏳ {countdown} restant
+      </div>
+    )}
+  </div>
+)}
 
             {variant === "waiting" && (
               <div className="text-orange-100">
