@@ -1735,18 +1735,17 @@ function getPlayerAvatar(username?: string | null) {
   return (
     <div
       key={race.id}
-      className="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 md:p-5 shadow-lg shadow-black/20 hover:bg-white/[0.09] transition"
-    >
+      className="rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-3 shadow-md shadow-black/10 hover:bg-white/[0.08] transition"    >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
           {race.logo_url ? (
             <img
               src={race.logo_url}
               alt={race.name}
-              className="h-16 w-16 rounded-2xl object-contain bg-white/5 p-2 shrink-0"
+              className="h-11 w-11 rounded-xl object-contain bg-white/5 p-1.5 shrink-0"
             />
           ) : (
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-fuchsia-500/25 flex items-center justify-center text-3xl shrink-0">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500/25 to-fuchsia-500/25 flex items-center justify-center text-3xl shrink-0">
               {raceTypeInfo.icon}
             </div>
           )}
@@ -1786,7 +1785,7 @@ function getPlayerAvatar(username?: string | null) {
               {race.name}
             </div>
 
-            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-white/65">
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/60">
               <div>
                 📅 {race.race_date ? formatDateFr(race.race_date) : "—"}
               </div>
@@ -1807,7 +1806,7 @@ function getPlayerAvatar(username?: string | null) {
           {canPronosticate ? (
             <button
               onClick={() => openProno(race)}
-              className="px-4 py-3 rounded-2xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-bold"
+              className="px-3 py-2 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/45 border border-indigo-300/20 transition font-bold"
             >
             {myPrediction ? "✏️ Modifier mon prono" : "🏁 Pronostiquer"}
             </button>
@@ -1815,20 +1814,20 @@ function getPlayerAvatar(username?: string | null) {
             <>
               <button
                 onClick={() => openRaceRankingModal(race)}
-                className="px-4 py-3 rounded-2xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition font-bold"
+                className="px-3 py-2 rounded-xl bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-300/20 transition font-bold"
               >
                 🏆 Classement
               </button>
 
               <button
                 onClick={() => openProno(race)}
-                className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition font-semibold"
+                className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition font-semibold"
               >
                 👀 Pronos
               </button>
             </>
           ) : (
-            <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/55 text-sm font-semibold">
+            <div className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/55 text-sm font-semibold">
               🔒 Pas encore ouvert
             </div>
           )}
