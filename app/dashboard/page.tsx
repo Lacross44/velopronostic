@@ -1553,6 +1553,7 @@ function getPlayerAvatar(username?: string | null) {
     {/* ton bloc classement ici */}
                     
 {/* Classement général */}
+      <div className="mt-6">
       <p>
       <h3 className="text-lg font-bold mb-3">
         🏆 Classement général
@@ -1636,6 +1637,7 @@ function getPlayerAvatar(username?: string | null) {
 })}
     </div>
   )}
+    </div>
     </div>
   </div>  
 
