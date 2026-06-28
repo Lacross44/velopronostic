@@ -1553,10 +1553,10 @@ function getPlayerAvatar(username?: string | null) {
     {/* ton bloc classement ici */}
                     
 {/* Classement général */}
-<p>
-      <h2 className="text-2xl font-black tracking-tight">
+      <p>
+      <h3 className="text-lg font-bold mb-3">
         🏆 Classement général
-      </h2></p>
+      </h3></p>
     <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-5 md:p-6 mb-8">
   <div className="flex items-center justify-between gap-3 mb-5">
     <div>
